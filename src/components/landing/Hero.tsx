@@ -33,15 +33,85 @@ export default function Hero() {
           </div>
 
           <div className="relative">
-            <div className="aspect-[16/10] w-full rounded-2xl border border-white/10 bg-gradient-to-tr from-indigo-500/10 to-cyan-400/10 p-1 shadow-2xl">
-              <img
-                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=750&fit=crop&q=80"
-                alt="Interface Go-Prod - Page artistes avec données et statistiques"
-                className="h-full w-full rounded-2xl object-cover ring-1 ring-white/10"
-              />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-[#0B1020]/60 to-transparent" />
+            <div className="aspect-[16/10] w-full rounded-2xl border border-white/10 bg-[#0E1530] p-4 shadow-2xl ring-1 ring-white/10 overflow-hidden">
+              {/* Mockup Page Artistes */}
+              <div className="h-full w-full flex flex-col gap-3">
+                {/* Header mockup */}
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-24 rounded bg-indigo-500/20" />
+                    <div className="h-6 w-16 rounded bg-white/5" />
+                  </div>
+                  <div className="h-8 w-32 rounded-lg bg-indigo-500/20" />
+                </div>
+                
+                {/* Grid de cartes artistes */}
+                <div className="grid grid-cols-3 gap-3 flex-1">
+                  {/* Card 1 */}
+                  <div className="rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 p-3 flex flex-col gap-2">
+                    <div className="h-20 w-full rounded-lg bg-indigo-500/30" />
+                    <div className="h-3 w-24 rounded bg-white/20" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-12 rounded bg-emerald-400/30" />
+                      <div className="h-2 w-16 rounded bg-blue-400/30" />
+                    </div>
+                  </div>
+                  
+                  {/* Card 2 */}
+                  <div className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-3 flex flex-col gap-2">
+                    <div className="h-20 w-full rounded-lg bg-blue-500/30" />
+                    <div className="h-3 w-20 rounded bg-white/20" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-14 rounded bg-emerald-400/30" />
+                      <div className="h-2 w-12 rounded bg-blue-400/30" />
+                    </div>
+                  </div>
+                  
+                  {/* Card 3 */}
+                  <div className="rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 p-3 flex flex-col gap-2">
+                    <div className="h-20 w-full rounded-lg bg-violet-500/30" />
+                    <div className="h-3 w-28 rounded bg-white/20" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-16 rounded bg-emerald-400/30" />
+                      <div className="h-2 w-14 rounded bg-blue-400/30" />
+                    </div>
+                  </div>
+                  
+                  {/* Card 4 */}
+                  <div className="rounded-xl border border-pink-500/20 bg-gradient-to-br from-pink-500/10 to-rose-500/10 p-3 flex flex-col gap-2">
+                    <div className="h-20 w-full rounded-lg bg-pink-500/30" />
+                    <div className="h-3 w-16 rounded bg-white/20" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-12 rounded bg-emerald-400/30" />
+                      <div className="h-2 w-18 rounded bg-blue-400/30" />
+                    </div>
+                  </div>
+                  
+                  {/* Card 5 */}
+                  <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 p-3 flex flex-col gap-2">
+                    <div className="h-20 w-full rounded-lg bg-emerald-500/30" />
+                    <div className="h-3 w-24 rounded bg-white/20" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-14 rounded bg-emerald-400/30" />
+                      <div className="h-2 w-12 rounded bg-blue-400/30" />
+                    </div>
+                  </div>
+                  
+                  {/* Card 6 */}
+                  <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-3 flex flex-col gap-2">
+                    <div className="h-20 w-full rounded-lg bg-orange-500/30" />
+                    <div className="h-3 w-20 rounded bg-white/20" />
+                    <div className="flex gap-2">
+                      <div className="h-2 w-16 rounded bg-emerald-400/30" />
+                      <div className="h-2 w-14 rounded bg-blue-400/30" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-[#0B1020]/40 to-transparent pointer-events-none" />
             </div>
-            <span id="demo" className="sr-only">Démo visuelle</span>
+            <span id="demo" className="sr-only">Démo visuelle - Page artistes Go-Prod</span>
           </div>
         </div>
       </div>

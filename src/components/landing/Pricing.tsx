@@ -2,7 +2,7 @@ export default function Pricing() {
   const tiers = [
     {
       name: "Starter",
-      price: "CHF 29/mois",
+      price: "CHF 49/mois",
       points: [
         "1 événement",
         "Jusqu'à 10 utilisateurs",
@@ -14,7 +14,7 @@ export default function Pricing() {
     },
     {
       name: "Professional",
-      price: "CHF 99/mois",
+      price: "CHF 139/mois",
       points: [
         "5 événements",
         "Automatisations & analytics",
