@@ -2,7 +2,7 @@
 
 ## ✅ Configuration actuelle
 
-Le projet est actuellement configuré pour déployer **UNIQUEMENT la landing page publique**, sans l'application complète.
+Le projet est actuellement configuré pour déployer **UNIQUEMENT la landing page publique**, sans l'application complète et **sans aucun lien externe**.
 
 ### Changements appliqués
 
@@ -13,6 +13,14 @@ Le projet est actuellement configuré pour déployer **UNIQUEMENT la landing pag
 - ✅ Suppression des dépendances Supabase au build
 - ✅ Suppression des dépendances API au build
 
+**Fichiers modifiés : `src/pages/public/LandingPage.tsx` & `src/layouts/PublicLayout.tsx`**
+- ✅ Suppression de **TOUS** les liens externes
+- ✅ Remplacement des liens `Link` par des boutons désactivés
+- ✅ Suppression des liens vers réseaux sociaux (Twitter, LinkedIn, GitHub)
+- ✅ Suppression du lien `mailto:` dans la section pricing
+- ✅ Désactivation de tous les liens du footer
+- ✅ Navigation 100% autonome - aucune sortie possible de la page
+
 ### Résultat
 
 ```
@@ -20,6 +28,30 @@ Route "/"         → Landing Page
 Route "/landing"  → Landing Page
 Route "*"         → Landing Page (toutes les autres routes)
 ```
+
+### Éléments désactivés (visuels uniquement)
+
+**Boutons CTA :**
+- ❌ "Essai gratuit" (désactivé, opacité 50%)
+- ❌ "Voir la démo" (désactivé, opacité 50%)
+- ❌ "Se connecter" (désactivé, opacité 50%)
+- ❌ "Commencer" (désactivé, opacité 50%)
+- ❌ "Démarrer l'essai" dans pricing (désactivé)
+- ❌ "Contacter les ventes" (désactivé)
+- ❌ "Planifier une démo" (désactivé)
+
+**Liens navbar :**
+- ✅ "Fonctionnalités" (scroll vers section - fonctionne)
+- ✅ "Tarifs" (scroll vers section - fonctionne)
+- ✅ "Témoignages" (scroll vers section - fonctionne)
+- ❌ "Documentation" (désactivé)
+
+**Footer :**
+- ❌ Tous les liens du footer sont désactivés (spans gris)
+- ❌ Réseaux sociaux supprimés (Twitter, LinkedIn, GitHub)
+- ✅ Copyright conservé
+
+**Résultat :** La page est **100% autonome** - aucun lien ne sort de la page.
 
 ## 📊 Build Stats
 
@@ -199,7 +231,9 @@ Le problème venait de :
 
 ---
 
-**Version actuelle : Landing Page Only (commit `6f3398d`)**
+**Version actuelle : Landing Page Only - Aucun lien externe (commit `4314b44`)**
+
+> ⚠️ **Note importante :** Cette landing page est totalement autonome. Tous les boutons CTA sont désactivés (visuels uniquement). C'est une vitrine statique sans interactions externes.
 
 Pour toute question, consultez `SECURITY_GUIDE.md` et `NETLIFY_ENV_CONFIG.md`.
 
