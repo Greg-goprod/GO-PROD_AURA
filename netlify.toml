@@ -31,13 +31,11 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
-# Redirects SPA
+# Redirects SPA - Toutes les routes vers index.html (React Router)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
-  conditions = {Role = ["public"]}
 
 # ==========================================
 # ENVIRONNEMENT VARIABLES (à configurer dans le Dashboard)
