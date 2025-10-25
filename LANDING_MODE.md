@@ -155,20 +155,51 @@ Les liens vers `/auth/signin` et `/auth/signup` dans la landing page mènent act
 2. **Sitemap** - Générer un `sitemap.xml`
 3. **robots.txt** - Ajouter dans `/public/robots.txt`
 
+## 🔧 Configuration Netlify SPA
+
+### Fichiers de redirection
+
+Le projet inclut **deux méthodes** pour gérer les routes React Router sur Netlify :
+
+#### 1. `public/_redirects` (recommandé)
+```
+/*    /index.html   200
+```
+Ce fichier est automatiquement copié dans `dist/` par Vite.
+
+#### 2. `netlify.toml`
+```toml
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+**Ces configurations garantissent que toutes les URLs sont gérées par React Router côté client.**
+
+### Problème 404 résolu
+
+Si vous aviez une erreur "Page not found" sur Netlify, c'est maintenant corrigé ! ✅
+
+Le problème venait de :
+- ❌ Condition `Role = ["public"]` dans les redirects (supprimée)
+- ❌ Pas de fichier `_redirects` (maintenant ajouté)
+
 ## ✅ Status
 
 | Check | Status |
 |-------|--------|
-| Build local | ✅ OK (14.36s) |
+| Build local | ✅ OK (~7s) |
 | Aucun secret dans bundle | ✅ Vérifié |
 | Landing page fonctionnelle | ✅ OK |
 | Responsive | ✅ OK |
 | Dark mode | ✅ OK |
+| Redirects SPA | ✅ OK |
 | Prêt Netlify | ✅ OUI |
 
 ---
 
-**Version actuelle : Landing Page Only (commit `46e5b29`)**
+**Version actuelle : Landing Page Only (commit `6f3398d`)**
 
 Pour toute question, consultez `SECURITY_GUIDE.md` et `NETLIFY_ENV_CONFIG.md`.
 
