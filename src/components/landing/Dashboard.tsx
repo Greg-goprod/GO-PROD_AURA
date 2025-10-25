@@ -7,8 +7,12 @@ export default function Dashboard() {
           Suivez en temps réel artistes confirmés, plannings, budgets, missions logistiques et plus.
           Go-Prod devient votre QG numérique — unifie vos flux et vos équipes.
         </p>
-        <div className="mt-8 rounded-2xl border border-white/10 p-1">
-          <div className="h-72 w-full rounded-2xl bg-gradient-to-tr from-indigo-500/10 to-cyan-400/10 ring-1 ring-white/10" />
+        <div className="mt-8 rounded-2xl border border-indigo-500/30 bg-gradient-to-tr from-indigo-500/10 to-cyan-400/10 p-1 shadow-2xl">
+          <img
+            src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=600&fit=crop&q=80"
+            alt="Dashboard Go-Prod avec vue d'ensemble des événements"
+            className="h-full w-full rounded-2xl object-cover"
+          />
         </div>
       </div>
     </section>

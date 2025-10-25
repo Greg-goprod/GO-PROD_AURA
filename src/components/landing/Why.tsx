@@ -11,19 +11,23 @@ export default function Why() {
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {[
             {
+              emoji: "🎯",
               title: "Centralisation totale",
               desc: "Artistes, contrats, plannings, budgets, transports, hébergements — tout au même endroit."
             },
             {
+              emoji: "🤝",
               title: "Collaboration instantanée",
               desc: "Espaces dédiés par équipe, vision commune, commentaires et historiques contextualisés."
             },
             {
+              emoji: "⚡",
               title: "Automatisation intelligente",
               desc: "Workflows, rappels, génération de documents et notifications clés intégrées."
             }
           ].map((f) => (
-            <div key={f.title} className="rounded-2xl border border-white/10 p-6">
+            <div key={f.title} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6 hover:border-indigo-500/30 transition-all">
+              <div className="text-4xl mb-3">{f.emoji}</div>
               <h3 className="text-lg font-semibold">{f.title}</h3>
               <p className="mt-2 text-white/75">{f.desc}</p>
             </div>

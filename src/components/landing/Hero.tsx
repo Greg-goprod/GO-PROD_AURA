@@ -34,23 +34,12 @@ export default function Hero() {
 
           <div className="relative">
             <div className="aspect-[16/10] w-full rounded-2xl border border-white/10 bg-gradient-to-tr from-indigo-500/10 to-cyan-400/10 p-1 shadow-2xl">
-              <div className="h-full w-full rounded-2xl bg-[#0E1530] ring-1 ring-white/10">
-                {/* Placeholder mockup */}
-                <div className="grid h-full grid-rows-6 p-4">
-                  <div className="row-span-1 flex items-center gap-2">
-                    <div className="h-6 w-24 rounded bg-white/10" />
-                    <div className="h-6 w-16 rounded bg-white/10" />
-                  </div>
-                  <div className="row-span-5 grid grid-cols-5 gap-3">
-                    <div className="col-span-3 rounded-xl border border-white/10" />
-                    <div className="col-span-2 grid gap-3">
-                      <div className="h-24 rounded-xl border border-white/10" />
-                      <div className="h-24 rounded-xl border border-white/10" />
-                      <div className="h-24 rounded-xl border border-white/10" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <img
+                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=750&fit=crop&q=80"
+                alt="Équipe de production événementielle en action"
+                className="h-full w-full rounded-2xl object-cover ring-1 ring-white/10"
+              />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-[#0B1020]/60 to-transparent" />
             </div>
             <span id="demo" className="sr-only">Démo visuelle</span>
           </div>
