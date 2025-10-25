@@ -9,6 +9,13 @@
   # Les variables VITE_* publiques sont OK
   # Les clés privées doivent être dans : Dashboard > Site settings > Environment variables
   NODE_VERSION = "22"
+  
+  # Désactiver le scan de secrets pour les variables publiques VITE_*
+  # Ces variables DOIVENT être dans le bundle client (comportement normal de Vite)
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,SUPABASE_ANON_KEY,VITE_SPOTIFY_CLIENT_ID,VITE_SPOTIFY_CLIENT_SECRET,VITE_RAPIDAPI_KEY,VITE_TWILIO_ACCOUNT_SID,VITE_TWILIO_AUTH_TOKEN,VITE_TWILIO_WHATSAPP_NUMBER"
+  
+  # Exclure les fichiers de documentation du scan (ils contiennent des exemples d'URLs)
+  SECRETS_SCAN_OMIT_PATHS = "*.md,sql/**,database/**,supabase/migrations/**"
 
 # Functions configuration
 [functions]

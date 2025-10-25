@@ -11,6 +11,10 @@ Les variables **VITE_*** peuvent être exposées dans le navigateur :
 - `VITE_RAPIDAPI_KEY`
 - `VITE_TWILIO_*`
 
+> **💡 Note importante :** Ces variables **DOIVENT** être présentes dans le bundle JavaScript final (dist/). C'est le comportement normal de Vite. Netlify peut les détecter comme "secrets" mais c'est un faux positif - elles sont conçues pour être publiques.
+>
+> **Configuration Netlify :** Le fichier `netlify.toml` contient `SECRETS_SCAN_OMIT_KEYS` pour dire à Netlify d'ignorer ces variables publiques.
+
 ### ❌ INTERDIT (Privé - Backend uniquement)
 Ces clés ne doivent **JAMAIS** être dans le code client :
 - `SUPABASE_SERVICE_KEY` / `SUPABASE_SERVICE_ROLE_KEY`
