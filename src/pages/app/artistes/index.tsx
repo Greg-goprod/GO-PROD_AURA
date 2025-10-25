@@ -5,7 +5,7 @@ import { useI18n } from "../../../lib/i18n";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { getCurrentCompanyId } from "../../../lib/tenant";
-import { triggerSpotifySync } from "../../../lib/spotifySync";
+// import { triggerSpotifySync } from "../../../lib/spotifySync"; // Temporairement désactivé
 import { supabase } from "../../../lib/supabaseClient";
 import AddArtistModal from "./partials/AddArtistModal";
 import EditArtistModal from "./partials/EditArtistModal";
@@ -53,9 +53,10 @@ export default function ArtistesPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [pageSize, setPageSize] = useState(96);
   const [showAdd, setShowAdd] = useState(false);
-  const [syncState, setSyncState] = useState<"idle"|"running"|"done"|"error">("idle");
-  const [syncMsg, setSyncMsg] = useState<string | undefined>(undefined);
-  const [isSyncing, setIsSyncing] = useState(false);
+  // Variables de sync temporairement désactivées
+  // const [syncState, setSyncState] = useState<"idle"|"running"|"done"|"error">("idle");
+  // const [syncMsg, setSyncMsg] = useState<string | undefined>(undefined);
+  // const [isSyncing, setIsSyncing] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
   const [deletingArtist, setDeletingArtist] = useState<Artist | null>(null);
   const [sortColumn, setSortColumn] = useState<string>('name');
@@ -307,8 +308,8 @@ export default function ArtistesPage() {
         </div>
       </div>
 
-      {/* Status de synchronisation */}
-      {syncMsg && (
+      {/* Status de synchronisation - Temporairement désactivé */}
+      {/* {syncMsg && (
         <div className={`p-3 rounded-lg text-sm ${
           syncState === "done" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
           syncState === "error" ? "bg-red-500/10 text-red-400 border border-red-500/20" :
@@ -316,7 +317,7 @@ export default function ArtistesPage() {
         }`}>
           {syncMsg}
         </div>
-      )}
+      )} */}
 
       {/* Search and filters */}
       <div className="flex flex-col md:flex-row gap-4">
@@ -357,11 +358,12 @@ export default function ArtistesPage() {
             <option value={48}>48</option>
             <option value={96}>96</option>
           </select>
-          {syncState !== "idle" && (
+          {/* Indicateur de sync temporairement désactivé */}
+          {/* {syncState !== "idle" && (
             <span className={`text-sm ${syncState==="error" ? "text-red-400" : "text-gray-500 dark:text-gray-400"}`}>
               {syncState==="running" ? "Synchro en cours…" : (syncMsg ?? "Synchro effectuée")}
             </span>
-          )}
+          )} */}
           <div className="flex gap-1 border border-gray-200 dark:border-white/10 rounded-lg p-1">
             <button
               onClick={() => setViewMode('grid')}
