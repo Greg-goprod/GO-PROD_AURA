@@ -1,0 +1,15 @@
+.z-backdrop{ z-index:var(--z-modal-backdrop) }
+.z-modal{ z-index:var(--z-modal) }
+.z-popover{ z-index:var(--z-popover) }
+.z-toast{ z-index:var(--z-toast) }
+.modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:blur(6px) }
+.modal{ position:fixed; inset:auto; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--color-bg-elevated);
+  border:1px solid color-mix(in oklab, var(--color-border) 80%, transparent); border-radius:16px; box-shadow:var(--shadow-xl)
+}
+
+/* Modal sizes */
+.modal-xxs{ width:200px }
+.modal-sm{ width:400px }
+.modal-md{ width:600px }
+.modal-lg{ width:800px }
+.modal-xl{ width:1000px }

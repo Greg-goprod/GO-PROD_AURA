@@ -1,0 +1,84 @@
+.clock-circle {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-hover) 100%);
+  border: 2px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clock-number {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  color: var(--text-primary);
+}
+
+.clock-number:hover {
+  background: rgba(113, 61, 255, 0.2);
+  transform: scale(1.15);
+}
+
+.clock-number.selected {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(113, 61, 255, 0.6);
+}
+
+.clock-center {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 10px rgba(113, 61, 255, 0.8);
+}
+
+.calendar-day {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  color: var(--text-primary);
+}
+
+.calendar-day:hover:not(.disabled) {
+  background: rgba(113, 61, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.calendar-day.selected {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(113, 61, 255, 0.5);
+}
+
+.calendar-day.in-range {
+  background: rgba(113, 61, 255, 0.2);
+}
+
+.calendar-day.disabled {
+  color: var(--text-disabled);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+
+

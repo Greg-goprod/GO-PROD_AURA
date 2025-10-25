@@ -1,0 +1,33 @@
+@import './styles/tokens.css';
+@import './styles/utilities.css';
+@import './styles/layout.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base page */
+:root, html, body, #root { height:100% }
+
+html {
+  font-size: 14px; /* Base font size reduced by 4px (from 18px to 14px) */
+}
+
+body{
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode background gradient */
+.dark body {
+  background: radial-gradient(1200px 800px at -10% -20%, color-mix(in oklab, var(--color-primary) 8%, transparent) 0%, transparent 60%),
+              linear-gradient(135deg, var(--color-bg-primary), color-mix(in oklab, var(--color-bg-surface) 60%, black));
+}
+
+/* Light mode background gradient */
+html:not(.dark) body {
+  background: radial-gradient(1200px 800px at 100% 0%, color-mix(in oklab, var(--color-primary) 5%, transparent) 0%, transparent 50%),
+              linear-gradient(135deg, #F5F7FB 0%, #FFFFFF 100%);
+}
