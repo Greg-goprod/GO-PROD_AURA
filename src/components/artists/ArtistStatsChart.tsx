@@ -12,7 +12,6 @@ import {
   Filler
 } from 'chart.js';
 import { supabase } from '../../lib/supabaseClient';
-import { useI18n } from '../../lib/i18n';
 
 // Enregistrer les composants Chart.js
 ChartJS.register(

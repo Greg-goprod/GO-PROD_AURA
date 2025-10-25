@@ -207,8 +207,8 @@ export default function ArtistesPage() {
   // 🔧 FONCTION DE SYNCHRONISATION MANUELLE SPOTIFY (conservée pour usage futur)
   // Cette fonction peut être appelée manuellement si besoin de forcer une synchronisation
   // La synchronisation automatique se fait quotidiennement à 12h00 UTC via cron job
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _handleManualSpotifySync = async () => {
+  // Fonction temporairement désactivée pour le build
+  /* const _handleManualSpotifySync = async () => {
     if (isSyncing || !companyId) return;
     
     setIsSyncing(true);
@@ -230,7 +230,7 @@ export default function ArtistesPage() {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }; */
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
