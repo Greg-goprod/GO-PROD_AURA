@@ -35,8 +35,8 @@ export default function Hero() {
           <div className="relative">
             <div className="aspect-[16/10] w-full rounded-2xl border border-white/10 bg-gradient-to-tr from-indigo-500/10 to-cyan-400/10 p-1 shadow-2xl">
               <img
-                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=750&fit=crop&q=80"
-                alt="Équipe de production événementielle en action"
+                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=750&fit=crop&q=80"
+                alt="Interface Go-Prod - Page artistes avec données et statistiques"
                 className="h-full w-full rounded-2xl object-cover ring-1 ring-white/10"
               />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-[#0B1020]/60 to-transparent" />
