@@ -3,8 +3,8 @@ import { FileSignature, BusFront, Hotel, CalendarClock, ChartPie, Megaphone } fr
 const items = [
   {
     icon: FileSignature,
-    title: "Artistes & Contrats",
-    desc: "Profils enrichis, offres, contrats, signatures et historique complet.",
+    title: "Artistes & Métriques",
+    desc: "Profils enrichis, métriques Spotify/Instagram, audience, top tracks et analytics temps réel.",
   },
   {
     icon: BusFront,
@@ -23,8 +23,8 @@ const items = [
   },
   {
     icon: ChartPie,
-    title: "Finances & Administration",
-    desc: "Budgets, paiements, factures, reporting et intégrations comptables.",
+    title: "Finances, Contrats & Admin",
+    desc: "Contrats, signatures, budgets, paiements, factures, reporting et intégrations comptables.",
   },
   {
     icon: Megaphone,
