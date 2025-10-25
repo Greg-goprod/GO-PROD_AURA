@@ -2,7 +2,6 @@ import {
   Sparkles, ArrowRight, PlayCircle, CheckCircle, Users, Calendar, CreditCard,
   BarChart3, Truck, ShieldCheck, Briefcase, Rocket, Star, Check
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
 export function LandingPage() {
   return (
@@ -37,20 +36,20 @@ export function LandingPage() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <Link
-                to="/auth/signup"
-                className="inline-flex items-center px-8 py-4 bg-grad-violet text-white rounded-lg font-semibold hover:shadow-violet-glow-strong transition-all"
+              <button
+                disabled
+                className="inline-flex items-center px-8 py-4 bg-grad-violet text-white rounded-lg font-semibold opacity-50 cursor-not-allowed"
               >
                 Essai gratuit
                 <ArrowRight size={20} className="ml-2" />
-              </Link>
-              <Link
-                to="/auth/signin"
-                className="inline-flex items-center px-8 py-4 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all backdrop-blur-sm"
+              </button>
+              <button
+                disabled
+                className="inline-flex items-center px-8 py-4 bg-white/10 text-white rounded-lg font-semibold opacity-50 cursor-not-allowed backdrop-blur-sm"
               >
                 <PlayCircle size={20} className="mr-2" />
                 Voir la démo
-              </Link>
+              </button>
             </div>
 
             {/* Bullets */}
@@ -355,12 +354,12 @@ export function LandingPage() {
                   <span className="text-gray-300">Support email</span>
                 </li>
               </ul>
-              <Link
-                to="/auth/signup"
-                className="block w-full text-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all"
+              <button
+                disabled
+                className="block w-full text-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold opacity-50 cursor-not-allowed"
               >
                 Démarrer l'essai
-              </Link>
+              </button>
             </div>
 
             {/* Professional Plan */}
@@ -396,12 +395,12 @@ export function LandingPage() {
                   <span className="text-gray-300">Support prioritaire</span>
                 </li>
               </ul>
-              <Link
-                to="/auth/signup"
-                className="block w-full text-center px-6 py-3 bg-grad-violet text-white rounded-lg font-semibold hover:shadow-violet-glow-strong transition-all"
+              <button
+                disabled
+                className="block w-full text-center px-6 py-3 bg-grad-violet text-white rounded-lg font-semibold opacity-50 cursor-not-allowed"
               >
                 Démarrer l'essai
-              </Link>
+              </button>
             </div>
 
             {/* Enterprise Plan */}
@@ -433,12 +432,12 @@ export function LandingPage() {
                   <span className="text-gray-300">SLA 24/7</span>
                 </li>
               </ul>
-              <a
-                href="mailto:sales@goprod.com"
-                className="block w-full text-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all"
+              <button
+                disabled
+                className="block w-full text-center px-6 py-3 bg-white/10 text-white rounded-lg font-semibold opacity-50 cursor-not-allowed"
               >
                 Contacter les ventes
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -457,19 +456,19 @@ export function LandingPage() {
             Rejoignez les équipes qui utilisent GO-PROD pour scaler sereinement.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/auth/signup"
-              className="inline-flex items-center px-8 py-4 bg-grad-violet text-white rounded-lg font-semibold hover:shadow-violet-glow-strong transition-all"
+            <button
+              disabled
+              className="inline-flex items-center px-8 py-4 bg-grad-violet text-white rounded-lg font-semibold opacity-50 cursor-not-allowed"
             >
               Essai gratuit
               <ArrowRight size={20} className="ml-2" />
-            </Link>
-            <Link
-              to="/auth/signin"
-              className="inline-flex items-center px-8 py-4 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all backdrop-blur-sm"
+            </button>
+            <button
+              disabled
+              className="inline-flex items-center px-8 py-4 bg-white/10 text-white rounded-lg font-semibold opacity-50 cursor-not-allowed backdrop-blur-sm"
             >
               Planifier une démo
-            </Link>
+            </button>
           </div>
         </div>
       </section>

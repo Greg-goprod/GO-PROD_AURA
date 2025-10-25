@@ -1,5 +1,4 @@
-import { Outlet, Link } from 'react-router-dom'
-import { Github, Linkedin, Twitter } from 'lucide-react'
+import { Outlet } from 'react-router-dom'
 import { ThemeToggle } from '../components/ui/ThemeToggle'
 
 export function PublicLayout() {
@@ -17,12 +16,12 @@ export function PublicLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               {/* TODO: Remplacer par SVG logo quand disponible */}
               <span className="text-2xl font-bold bg-grad-violet bg-clip-text text-transparent">
                 GO-PROD
               </span>
-            </Link>
+            </div>
 
             {/* Navigation */}
             <div className="hidden md:flex items-center space-x-8">
@@ -44,29 +43,29 @@ export function PublicLayout() {
               >
                 Témoignages
               </button>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-white transition-colors"
+              <button
+                disabled
+                className="text-gray-300 opacity-50 cursor-not-allowed"
               >
                 Documentation
-              </a>
+              </button>
             </div>
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <Link
-                to="/auth/signin"
-                className="text-gray-300 hover:text-white transition-colors"
+              <button
+                disabled
+                className="text-gray-300 opacity-50 cursor-not-allowed"
               >
                 Se connecter
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="px-4 py-2 bg-grad-violet text-white rounded-lg font-semibold hover:shadow-violet-glow transition-all"
+              </button>
+              <button
+                disabled
+                className="px-4 py-2 bg-grad-violet text-white rounded-lg font-semibold opacity-50 cursor-not-allowed"
               >
                 Commencer
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -102,14 +101,14 @@ export function PublicLayout() {
                   </button>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Mises à jour
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Roadmap
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -119,24 +118,24 @@ export function PublicLayout() {
               <h3 className="text-white font-semibold mb-4">Entreprise</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     À propos
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Blog
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Carrières
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Contact
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -146,24 +145,24 @@ export function PublicLayout() {
               <h3 className="text-white font-semibold mb-4">Ressources</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Documentation
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     API
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Support
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Statut
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -173,24 +172,24 @@ export function PublicLayout() {
               <h3 className="text-white font-semibold mb-4">Légal</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Confidentialité
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Conditions
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Cookies
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="text-gray-500 cursor-not-allowed">
                     Licences
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -201,35 +200,6 @@ export function PublicLayout() {
             <p className="text-gray-400 text-sm">
               © {new Date().getFullYear()} GO-PROD. Tous droits réservés.
             </p>
-            <div className="flex items-center space-x-6 mt-4 md:mt-0">
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter size={20} />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin size={20} />
-              </a>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="GitHub"
-              >
-                <Github size={20} />
-              </a>
-            </div>
           </div>
         </div>
       </footer>
