@@ -208,7 +208,7 @@ export default function ArtistesPage() {
   // Cette fonction peut être appelée manuellement si besoin de forcer une synchronisation
   // La synchronisation automatique se fait quotidiennement à 12h00 UTC via cron job
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleManualSpotifySync = async () => {
+  const _handleManualSpotifySync = async () => {
     if (isSyncing || !companyId) return;
     
     setIsSyncing(true);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Music, Search } from "lucide-react";
+import { Music, Search, Bug } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import Modal, { ModalFooter, ModalButton } from "@/components/ui/Modal";
@@ -62,8 +62,9 @@ export default function EditArtistModal({ artist, companyId, onClose, onSaved }:
 
   const handleDebug = async () => {
     console.log("🐛 === DÉBUT DIAGNOSTIC ===");
-    debugEnvironment();
-    debugSupabaseConnection();
+    console.log("Environment:", import.meta.env);
+    console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+    console.log("Company ID:", companyId);
     
     // Diagnostic des données Spotify
     console.log("🎵 === DIAGNOSTIC SPOTIFY ===");

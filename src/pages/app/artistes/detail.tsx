@@ -1,4 +1,4 @@
-import { User, Link as LinkIcon, ArrowLeft, Music, TrendingUp, Calendar, Mail, Phone, MapPin } from "lucide-react";
+import { User, ArrowLeft, Music, TrendingUp, Calendar, Mail, Phone, MapPin } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
@@ -27,6 +27,11 @@ type Artist = {
     youtube_url?: string;
     tiktok_url?: string;
     twitter_url?: string;
+    website_url?: string;
+    threads_url?: string;
+    soundcloud_url?: string;
+    bandcamp_url?: string;
+    wikipedia_url?: string;
   };
 };
 

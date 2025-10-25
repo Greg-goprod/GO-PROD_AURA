@@ -39,12 +39,10 @@ type Props = {
 
 type Period = 7 | 30 | 90 | 180 | 365 | 730 | 'all';
 
-export function ArtistStatsChart({ artistId, artistName }: Props) {
+export function ArtistStatsChart({ artistId }: Props) {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>(30);
-  const { t } = useI18n();
   const [history, setHistory] = useState<HistoryData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMetric, setSelectedMetric] = useState<'both' | 'followers' | 'popularity'>('both');
 
   useEffect(() => {
     fetchHistory();
@@ -119,39 +117,39 @@ export function ArtistStatsChart({ artistId, artistName }: Props) {
   const followersData = history.map(h => h.followers);
   const popularityData = history.map(h => h.popularity);
 
-  // Configuration du graphique Followers
-  const followersChartData = {
-    labels,
-    datasets: [
-      {
-        label: 'Followers',
-        data: followersData,
-        borderColor: 'rgb(139, 92, 246)',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-    ],
-  };
+  // Configuration du graphique Followers (non utilisé pour l'instant)
+  // const followersChartData = {
+  //   labels,
+  //   datasets: [
+  //     {
+  //       label: 'Followers',
+  //       data: followersData,
+  //       borderColor: 'rgb(139, 92, 246)',
+  //       backgroundColor: 'rgba(139, 92, 246, 0.1)',
+  //       fill: true,
+  //       tension: 0.4,
+  //       pointRadius: 4,
+  //       pointHoverRadius: 6,
+  //     },
+  //   ],
+  // };
 
-  // Configuration du graphique Popularity
-  const popularityChartData = {
-    labels,
-    datasets: [
-      {
-        label: 'Popularité',
-        data: popularityData,
-        borderColor: 'rgb(236, 72, 153)',
-        backgroundColor: 'rgba(236, 72, 153, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-    ],
-  };
+  // Configuration du graphique Popularity (non utilisé pour l'instant)
+  // const popularityChartData = {
+  //   labels,
+  //   datasets: [
+  //     {
+  //       label: 'Popularité',
+  //       data: popularityData,
+  //       borderColor: 'rgb(236, 72, 153)',
+  //       backgroundColor: 'rgba(236, 72, 153, 0.1)',
+  //       fill: true,
+  //       tension: 0.4,
+  //       pointRadius: 4,
+  //       pointHoverRadius: 6,
+  //     },
+  //   ],
+  // };
 
   // Configuration du graphique combiné
   const combinedChartData = {
@@ -178,87 +176,89 @@ export function ArtistStatsChart({ artistId, artistName }: Props) {
     ],
   };
 
-  const followersOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: 'Évolution des Followers',
-        color: '#9ca3af',
-        font: { size: 14, weight: 'normal' as const },
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            return `${context.parsed.y.toLocaleString('fr-FR')} followers`;
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-        ticks: {
-          callback: (value: any) => value.toLocaleString('fr-FR'),
-          color: '#9ca3af',
-        },
-        grid: {
-          color: 'rgba(156, 163, 175, 0.1)',
-        },
-      },
-      x: {
-        ticks: { color: '#9ca3af' },
-        grid: {
-          color: 'rgba(156, 163, 175, 0.1)',
-        },
-      },
-    },
-  };
+  // Options pour le graphique Followers (non utilisé pour l'instant)
+  // const followersOptions = {
+  //   responsive: true,
+  //   maintainAspectRatio: false,
+  //   plugins: {
+  //     legend: {
+  //       display: false,
+  //     },
+  //     title: {
+  //       display: true,
+  //       text: 'Évolution des Followers',
+  //       color: '#9ca3af',
+  //       font: { size: 14, weight: 'normal' as const },
+  //     },
+  //     tooltip: {
+  //       callbacks: {
+  //         label: (context: any) => {
+  //           return `${context.parsed.y.toLocaleString('fr-FR')} followers`;
+  //         },
+  //       },
+  //     },
+  //   },
+  //   scales: {
+  //     y: {
+  //       beginAtZero: false,
+  //       ticks: {
+  //         callback: (value: any) => value.toLocaleString('fr-FR'),
+  //         color: '#9ca3af',
+  //       },
+  //       grid: {
+  //         color: 'rgba(156, 163, 175, 0.1)',
+  //       },
+  //     },
+  //     x: {
+  //       ticks: { color: '#9ca3af' },
+  //       grid: {
+  //         color: 'rgba(156, 163, 175, 0.1)',
+  //       },
+  //     },
+  //   },
+  // };
 
-  const popularityOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: 'Évolution de la Popularité',
-        color: '#9ca3af',
-        font: { size: 14, weight: 'normal' as const },
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            return `Popularité: ${context.parsed.y}/100`;
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        ticks: {
-          color: '#9ca3af',
-        },
-        grid: {
-          color: 'rgba(156, 163, 175, 0.1)',
-        },
-      },
-      x: {
-        ticks: { color: '#9ca3af' },
-        grid: {
-          color: 'rgba(156, 163, 175, 0.1)',
-        },
-      },
-    },
-  };
+  // Options pour le graphique Popularity (non utilisé pour l'instant)
+  // const popularityOptions = {
+  //   responsive: true,
+  //   maintainAspectRatio: false,
+  //   plugins: {
+  //     legend: {
+  //       display: false,
+  //     },
+  //     title: {
+  //       display: true,
+  //       text: 'Évolution de la Popularité',
+  //       color: '#9ca3af',
+  //       font: { size: 14, weight: 'normal' as const },
+  //     },
+  //     tooltip: {
+  //       callbacks: {
+  //         label: (context: any) => {
+  //           return `Popularité: ${context.parsed.y}/100`;
+  //         },
+  //       },
+  //     },
+  //   },
+  //   scales: {
+  //     y: {
+  //       beginAtZero: true,
+  //       max: 100,
+  //       ticks: {
+  //         color: '#9ca3af',
+  //       },
+  //       grid: {
+  //         color: 'rgba(156, 163, 175, 0.1)',
+  //       },
+  //     },
+  //     x: {
+  //       ticks: { color: '#9ca3af' },
+  //       grid: {
+  //         color: 'rgba(156, 163, 175, 0.1)',
+  //       },
+  //     },
+  //   },
+  // };
 
   const combinedOptions = {
     responsive: true,
