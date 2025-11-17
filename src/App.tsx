@@ -42,9 +42,12 @@ import VentesPage from './pages/app/administration/ventes'
 
 // Settings
 import SettingsIndexPage from './pages/app/settings'
-import ProfilePage from './pages/settings/ProfilePage'
-import SecurityPage from './pages/settings/SecurityPage'
-import PermissionsSettingsPage from './pages/app/settings/permissions'
+import SettingsEventsPage from './pages/settings/SettingsEventsPage'
+import SettingsContactsPage from './pages/settings/SettingsContactsPage'
+import SettingsStaffPage from './pages/settings/SettingsStaffPage'
+import SettingsGroundPage from './pages/settings/SettingsGroundPage'
+import SettingsHospitalityPage from './pages/settings/SettingsHospitalityPage'
+import SettingsAdminPage from './pages/settings/SettingsAdminPage'
 
 // Presse
 import PressePage from './pages/app/presse'
@@ -56,6 +59,10 @@ import EntreprisesPage from './pages/app/contacts/entreprises'
 
 // Staff
 import StaffPage from './pages/app/staff'
+import StaffPlanningPage from './pages/app/staff/planning'
+import StaffCampaignsPage from './pages/app/staff/campaigns'
+import StaffCommunicationsPage from './pages/app/staff/communications'
+import StaffExportsPage from './pages/app/staff/exports'
 
 // Booking & Timeline
 import BookingPage from './pages/BookingPage'
@@ -135,7 +142,13 @@ export default function App(){
         </Route>
 
         {/* Staff */}
-        <Route path="staff" element={<StaffPage/>}/>
+        <Route path="staff">
+          <Route index element={<StaffPage/>}/>
+          <Route path="planning" element={<StaffPlanningPage/>}/>
+          <Route path="campaigns" element={<StaffCampaignsPage/>}/>
+          <Route path="communications" element={<StaffCommunicationsPage/>}/>
+          <Route path="exports" element={<StaffExportsPage/>}/>
+        </Route>
 
         {/* Booking & Timeline */}
         <Route path="booking" element={<BookingPage/>}/>
@@ -144,9 +157,12 @@ export default function App(){
         {/* Settings */}
         <Route path="settings">
           <Route index element={<SettingsIndexPage/>}/>
-          <Route path="profile" element={<ProfilePage/>}/>
-          <Route path="security" element={<SecurityPage/>}/>
-          <Route path="permissions" element={<PermissionsSettingsPage/>}/>
+          <Route path="events" element={<SettingsEventsPage/>}/>
+          <Route path="contacts" element={<SettingsContactsPage/>}/>
+          <Route path="staff" element={<SettingsStaffPage/>}/>
+          <Route path="ground" element={<SettingsGroundPage/>}/>
+          <Route path="hospitality" element={<SettingsHospitalityPage/>}/>
+          <Route path="admin" element={<SettingsAdminPage/>}/>
         </Route>
 
         {/* Admin (legacy) */}
