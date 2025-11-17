@@ -66,7 +66,7 @@ export function SettingsGroundPage() {
                 placeholder="Bonjour {name}, votre transport est prévu à {time}."
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Variables disponibles: {name}, {time}, {location}
+                Variables disponibles: {"{name}"}, {"{time}"}, {"{location}"}
               </p>
             </div>
 
@@ -82,7 +82,7 @@ export function SettingsGroundPage() {
                 placeholder="Transport confirmé pour {name} à {time}."
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Variables disponibles: {name}, {time}, {location}, {driver}
+                Variables disponibles: {"{name}"}, {"{time}"}, {"{location}"}, {"{driver}"}
               </p>
             </div>
           </div>
