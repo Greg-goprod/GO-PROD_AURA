@@ -545,18 +545,16 @@ export default function BudgetArtistiquePage() {
       <p className="text-sm text-gray-400 mb-6">Booking / Budget artistique</p>
 
       {/* Dashboard avec les 9 containers */}
-      {hasEvent && !demoMode && (
-        <DailySummaryCards 
-          days={days} 
-          performances={performances}
-          totalFeesByCurrency={globalStats.totalFeesByCurrency}
-          totalCommissionByCurrency={globalStats.totalCommissionByCurrency}
-          totalAllFeesByCurrency={globalStats.totalAllFeesByCurrency}
-          totalNetFeesCHF={globalStats.totalNetFeesCHF}
-          totalWithholdingTaxCHF={globalStats.totalWithholdingTaxCHF}
-          currencyRates={currencyRates}
-        />
-      )}
+      <DailySummaryCards 
+        days={days} 
+        performances={performances}
+        totalFeesByCurrency={globalStats.totalFeesByCurrency}
+        totalCommissionByCurrency={globalStats.totalCommissionByCurrency}
+        totalAllFeesByCurrency={globalStats.totalAllFeesByCurrency}
+        totalNetFeesCHF={globalStats.totalNetFeesCHF}
+        totalWithholdingTaxCHF={globalStats.totalWithholdingTaxCHF}
+        currencyRates={currencyRates}
+      />
 
       {/* Taux de change */}
       {hasEvent && !demoMode && currencyRates && (
