@@ -57,6 +57,10 @@ import EntreprisesPage from './pages/app/contacts/entreprises'
 // Staff
 import StaffPage from './pages/app/staff'
 
+// Booking & Timeline
+import BookingPage from './pages/BookingPage'
+import LineupTimelinePage from './pages/LineupTimelinePage'
+
 // Admin (legacy)
 import PermissionsPage from './pages/admin/PermissionsPage'
 
@@ -132,6 +136,10 @@ export default function App(){
 
         {/* Staff */}
         <Route path="staff" element={<StaffPage/>}/>
+
+        {/* Booking & Timeline */}
+        <Route path="booking" element={<BookingPage/>}/>
+        <Route path="timeline" element={<LineupTimelinePage/>}/>
 
         {/* Settings */}
         <Route path="settings">
