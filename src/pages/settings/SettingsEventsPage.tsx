@@ -290,3 +290,6 @@ export function SettingsEventsPage() {
     </div>
   );
 }
+
+
+export default SettingsEventsPage;

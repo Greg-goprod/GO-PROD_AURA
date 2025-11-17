@@ -478,3 +478,6 @@ export function SettingsContactsPage() {
     </div>
   );
 }
+
+
+export default SettingsContactsPage;

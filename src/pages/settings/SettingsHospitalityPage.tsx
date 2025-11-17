@@ -113,3 +113,6 @@ export function SettingsHospitalityPage() {
   );
 }
 
+
+
+export default SettingsHospitalityPage;

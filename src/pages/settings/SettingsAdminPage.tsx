@@ -579,3 +579,5 @@ export function SettingsAdminPage() {
     </div>
   );
 }
+
+export default SettingsAdminPage;

@@ -11,7 +11,7 @@ interface ConfirmDeleteModalProps {
   loading?: boolean;
 }
 
-export default function ConfirmDeleteModal({
+export function ConfirmDeleteModal({
   isOpen,
   onClose,
   onConfirm,
@@ -67,3 +67,5 @@ export default function ConfirmDeleteModal({
     </Modal>
   );
 }
+
+export default ConfirmDeleteModal;

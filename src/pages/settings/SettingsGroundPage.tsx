@@ -98,3 +98,6 @@ export function SettingsGroundPage() {
   );
 }
 
+
+
+export default SettingsGroundPage;
