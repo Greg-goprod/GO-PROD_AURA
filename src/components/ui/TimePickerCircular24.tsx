@@ -1,36 +1,48 @@
 import * as React from 'react'
 import cn from 'classnames'
 
+/**
+ * @deprecated Préférer TimePickerPopup pour usage en formulaire.
+ * Ce composant est utilisé en interne par TimePickerPopup.
+ * Import: `import { TimePickerPopup } from '@/components/ui/pickers'`
+ * @see {@link TimePickerPopup}
+ */
 type TimePickerProps = {
   value?: string | null
   onChange: (value: string | null) => void
   placeholder?: string
   className?: string
+  onClose?: () => void
 }
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i + 1)
+// 0-23 heures (0 = minuit/00h, 12 = midi)
+const HOURS = Array.from({ length: 24 }, (_, i) => i)
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5)
 
-function polarToCartesian(radius: number, angle: number) {
+function polarToCartesian(radiusPos: number, angle: number, centerSize: number) {
   const rad = ((angle - 90) * Math.PI) / 180
-  const x = radius + radius * Math.cos(rad)
-  const y = radius + radius * Math.sin(rad)
+  const x = centerSize + radiusPos * Math.cos(rad)
+  const y = centerSize + radiusPos * Math.sin(rad)
   return { x, y }
 }
 
-function getHourPosition(index: number, inner: boolean) {
+function getHourPosition(index: number, inner: boolean, centerSize: number) {
   const angle = (360 / 12) * index
-  const radius = inner ? 70 : 110
-  return polarToCartesian(radius, angle)
+  const radius = inner ? (centerSize * 0.45) : (centerSize * 0.75)
+  return polarToCartesian(radius, angle, centerSize)
 }
 
-function getMinutePosition(index: number) {
+function getMinutePosition(index: number, centerSize: number) {
   const angle = (360 / 12) * index
-  const radius = 110
-  return polarToCartesian(radius, angle)
+  const radius = centerSize * 0.75
+  return polarToCartesian(radius, angle, centerSize)
 }
 
-export function TimePickerCircular24({ value, onChange, placeholder, className }: TimePickerProps) {
+/**
+ * @deprecated Préférer TimePickerPopup pour usage en formulaire.
+ * @see {@link TimePickerPopup}
+ */
+export function TimePickerCircular24({ value, onChange, placeholder, className, onClose }: TimePickerProps) {
   const [mode, setMode] = React.useState<'hours' | 'minutes'>('hours')
   const [internal, setInternal] = React.useState<string | null>(value ?? null)
 
@@ -54,60 +66,85 @@ export function TimePickerCircular24({ value, onChange, placeholder, className }
     onChange(next)
   }
 
+  const circleSize = 250 // Taille du cercle pour popup 300px (agrandi pour mieux occuper l'espace)
+  const centerSize = circleSize / 2
+
   return (
-    <div className={cn('card-surface rounded-2xl p-6', className)}>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button className={cn('chip chip-xs', { active: mode === 'hours' })} onClick={() => setMode('hours')} type="button">
-            Heures
-          </button>
-          <button className={cn('chip chip-xs', { active: mode === 'minutes' })} onClick={() => setMode('minutes')} type="button">
-            Minutes
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            className="input w-16 text-center"
-            value={hours != null ? String(hours).padStart(2, '0') : ''}
-            placeholder="HH"
-            onChange={(e) => {
-              const numeric = parseInt(e.target.value, 10)
-              if (!Number.isNaN(numeric)) {
-                const next = `${String(numeric).padStart(2, '0')}:${String(minutes ?? 0).padStart(2, '0')}`
-                setInternal(next)
-                onChange(next)
-              }
-            }}
-          />
-          <span className="text-2xl font-manrope">:</span>
-          <input
-            className="input w-16 text-center"
-            value={minutes != null ? String(minutes).padStart(2, '0') : ''}
-            placeholder="MM"
-            onChange={(e) => {
-              const numeric = parseInt(e.target.value, 10)
-              if (!Number.isNaN(numeric)) {
-                const next = `${String(hours ?? 0).padStart(2, '0')}:${String(numeric).padStart(2, '0')}`
-                setInternal(next)
-                onChange(next)
-              }
-            }}
-          />
+    <div 
+      className={cn('rounded-xl', className)} 
+      style={{ 
+        width: '300px', 
+        height: '380px', 
+        display: 'flex', 
+        flexDirection: 'column',
+        border: '1px solid color-mix(in oklab, var(--color-border) 80%, transparent)',
+        borderRadius: '0.75rem',
+        overflow: 'hidden',
+      }}
+    >
+      {/* TOP BAR avec couleur AURA primary */}
+      <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: 'var(--color-primary)' }}>
+        <span className="text-white text-sm font-medium">
+          {mode === 'hours' ? 'Sélectionner l\'heure' : 'Sélectionner les minutes'}
+        </span>
+        <div 
+          className="flex items-center gap-1 text-white text-xl font-bold" 
+          style={{ fontFamily: 'Manrope, Inter, sans-serif', letterSpacing: '0.05em' }}
+        >
+          <span>{hours != null ? String(hours).padStart(2, '0') : '00'}</span>
+          <span>:</span>
+          <span>{minutes != null ? String(minutes).padStart(2, '0') : '00'}</span>
         </div>
       </div>
-      <div className="flex justify-center mb-6">
-        <div className="clock-circle" style={{ width: 280, height: 280 }}>
-          <div className="clock-center" />
+
+      {/* CONTENU CENTRAL */}
+      <div className="flex-1 overflow-hidden" style={{ backgroundColor: 'var(--color-bg-elevated)' }}>
+      {/* MODE SELECTOR */}
+      <div className="px-3 pt-3 pb-2 flex items-center justify-center gap-2">
+        <button 
+          className={cn(
+            'px-3 py-1 rounded-lg text-xs font-medium transition-colors',
+            mode === 'hours' 
+              ? 'text-white' 
+              : 'opacity-60 hover:opacity-80'
+          )} 
+          style={mode === 'hours' ? { backgroundColor: 'var(--color-primary)' } : {}}
+          onClick={() => setMode('hours')} 
+          type="button"
+        >
+          Heures
+        </button>
+        <button 
+          className={cn(
+            'px-3 py-1 rounded-lg text-xs font-medium transition-colors',
+            mode === 'minutes' 
+              ? 'text-white' 
+              : 'opacity-60 hover:opacity-80'
+          )} 
+          style={mode === 'minutes' ? { backgroundColor: 'var(--color-primary)' } : {}}
+          onClick={() => setMode('minutes')} 
+          type="button"
+        >
+          Minutes
+        </button>
+      </div>
+      <div className="flex justify-center mb-2">
+        <div className="clock-circle-compact" style={{ width: circleSize, height: circleSize }}>
+          <div className="clock-center-compact" />
           {mode === 'hours'
             ? HOURS.map((hour) => {
-                const inner = hour > 12
-                const actualHour = (hour - 1) % 12
-                const pos = getHourPosition(actualHour, inner)
+                // Cercle EXTÉRIEUR : 12-23 (12h-23h/midi-minuit)
+                // Cercle INTÉRIEUR : 0-11 (00h-11h/minuit-midi)
+                const inner = hour < 12  // 0-11 = intérieur, 12-23 = extérieur
+                // Position sur le cadran : 12 en haut (index 0)
+                const displayHour = hour === 0 ? 12 : hour  // Afficher 12 pour minuit
+                const actualHour = hour % 12  // Position angulaire (0-11)
+                const pos = getHourPosition(actualHour, inner, centerSize)
                 const selected = hours === hour
                 return (
                   <button
                     key={hour}
-                    className={cn('clock-number', { selected })}
+                    className={cn('clock-number-compact', { selected, inner })}
                     style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
                     onClick={() => handleHourClick(hour)}
                     type="button"
@@ -117,12 +154,12 @@ export function TimePickerCircular24({ value, onChange, placeholder, className }
                 )
               })
             : MINUTES.map((minute, index) => {
-                const pos = getMinutePosition(index)
+                const pos = getMinutePosition(index, centerSize)
                 const selected = minutes === minute
                 return (
                   <button
                     key={minute}
-                    className={cn('clock-number', { selected })}
+                    className={cn('clock-number-compact', { selected })}
                     style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
                     onClick={() => handleMinuteClick(minute)}
                     type="button"
@@ -133,29 +170,40 @@ export function TimePickerCircular24({ value, onChange, placeholder, className }
               })}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <button className="btn btn-ghost btn-sm" onClick={() => onChange(null)} type="button">
-          Réinitialiser
-        </button>
-        <button
-          className="btn btn-ghost btn-sm"
+      </div>
+
+      {/* FOOTER avec couleur AURA primary */}
+      <div className="px-4 py-3 flex items-center justify-between gap-2" style={{ backgroundColor: 'var(--color-primary)' }}>
+        <button 
+          className="text-white text-sm font-medium hover:bg-white/10 px-3 py-1 rounded transition-colors" 
           onClick={() => {
-            const now = new Date()
-            const hh = String(now.getHours()).padStart(2, '0')
-            const mm = String(Math.round(now.getMinutes() / 5) * 5).padStart(2, '0')
-            const next = `${hh}:${mm}`
-            setInternal(next)
-            onChange(next)
-          }}
+            setInternal(null)
+            onChange(null)
+            onClose?.()
+          }} 
           type="button"
         >
-          Maintenant
+          Annuler
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => onChange('23:59')} type="button">
-          23:59
+        <button 
+          className="text-white text-sm font-medium hover:bg-white/10 px-3 py-1 rounded transition-colors" 
+          onClick={() => {
+            setInternal(null)
+            onChange(null)
+          }} 
+          type="button"
+        >
+          Effacer
+        </button>
+        <button 
+          className="bg-white text-sm font-semibold px-4 py-1.5 rounded transition-colors" 
+          style={{ color: 'var(--color-primary)' }}
+          onClick={() => onClose?.()} 
+          type="button"
+        >
+          OK
         </button>
       </div>
-      {placeholder ? <p className="text-sm text-[var(--text-muted)] mt-2">{placeholder}</p> : null}
     </div>
   )
 }

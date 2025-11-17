@@ -133,8 +133,13 @@ export default function SpotifySearchModal({ isOpen, onClose, onSelect, searchQu
             {artists.slice(0, 8).map((artist) => (
               <div
                 key={artist.id}
-                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                style={{ borderColor: 'var(--border-default)' }}
+                className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer"
+                style={{ 
+                  borderColor: 'var(--border-default)',
+                  transition: 'background 0.15s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover-row)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = ''}
                 onClick={() => handleSelect(artist)}
               >
                 {/* Image */}

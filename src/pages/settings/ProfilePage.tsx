@@ -26,7 +26,7 @@ export default function ProfilePage() {
               fallback={profile.full_name.split(' ').map(n => n[0]).join('')}
             />
             <div className="space-y-2">
-              <Button variant="secondary" leftIcon={<Icon name="Upload" />}>
+              <Button leftIcon={<Icon name="Upload" />}>
                 Changer la photo
               </Button>
               <p className="text-sm text-muted">JPG, PNG ou GIF. Max 2 MB.</p>

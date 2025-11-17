@@ -18,11 +18,12 @@ interface SpotifyArtist {
 
 type Props = {
   companyId: string;
+  eventId?: string | null; // ID de l'événement dans lequel l'artiste est créé (pour tracking)
   onClose: () => void;
   onSaved: () => void;
 };
 
-export default function AddArtistModal({ companyId, onClose, onSaved }: Props) {
+export default function AddArtistModal({ companyId, eventId, onClose, onSaved }: Props) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -61,10 +62,38 @@ export default function AddArtistModal({ companyId, onClose, onSaved }: Props) {
     }
     setLoading(true);
 
-    const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    console.log("🔗 Slug généré:", slug);
-
     try {
+      // Vérifier et créer la compagnie par défaut si nécessaire
+      console.log("🏢 Vérification de la compagnie par défaut...");
+      const { data: companyExists, error: companyCheckError } = await supabase
+        .from("companies")
+        .select("id")
+        .eq("id", companyId)
+        .maybeSingle();
+      
+      if (companyCheckError) {
+        console.error("❌ Erreur lors de la vérification de la compagnie:", companyCheckError);
+        throw companyCheckError;
+      }
+      
+      if (!companyExists) {
+        console.log("🏢 Création de la compagnie par défaut...");
+        const { error: companyCreateError } = await supabase
+          .from("companies")
+          .insert({
+            id: companyId,
+            name: "Compagnie par défaut",
+          });
+        
+        if (companyCreateError) {
+          console.error("❌ Erreur lors de la création de la compagnie:", companyCreateError);
+          throw companyCreateError;
+        }
+        console.log("✅ Compagnie par défaut créée");
+      } else {
+        console.log("✅ Compagnie existe déjà");
+      }
+
       // Vérifie existence (company_id + name ilike)
       console.log("🔍 Vérification de l'existence de l'artiste...");
       const { data: exists, error: existsErr } = await supabase
@@ -96,8 +125,8 @@ export default function AddArtistModal({ companyId, onClose, onSaved }: Props) {
         .insert([{
           company_id: companyId,
           name: name.trim(),
-          slug,
-          status: 'active'
+          status: 'active',
+          created_for_event_id: eventId || null // Tracker l'événement d'origine
         }])
         .select('id')
         .single();
