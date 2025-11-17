@@ -11,7 +11,7 @@ import { Settings, Plus, Calendar } from "lucide-react";
 
 import { KanbanBoard } from "@/features/booking/KanbanBoard";
 import { OffersListView } from "@/features/booking/OffersListView";
-import { OfferComposer, type OfferComposerProps } from "@/features/booking/modals/OfferComposer";
+import { OfferComposer } from "@/features/booking/modals/OfferComposer";
 import { SendOfferModal } from "@/features/booking/modals/SendOfferModal";
 import { RejectOfferModal } from "@/features/booking/modals/RejectOfferModal";
 import { PerformanceModal } from "@/features/booking/modals/PerformanceModal";
@@ -472,6 +472,7 @@ export default function AdminBookingPage() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function handleSendOfferEmail(data: {
     email: string; ccEmails?: string[]; sender: { name:string; email:string; label?:string };
     recipientFirstName?: string; validityDate?: string; customMessage?: string;
@@ -492,31 +493,33 @@ export default function AdminBookingPage() {
       const pdfUrl = await createSignedOfferPdfUrl(selectedOffer.pdf_storage_path);
       if (!pdfUrl) throw new Error("Impossible de générer l'URL du PDF");
 
-      // 3. Envoyer email
-      const subject = `Offre artiste - ${selectedOffer.artist_name || 'Artiste'} - ${selectedOffer.event_name || 'Événement'}`;
-      const htmlContent = `
-        <h2>Offre artiste</h2>
-        <p>Bonjour ${data.recipientFirstName || ''},</p>
-        <p>Veuillez trouver ci-joint l'offre pour ${selectedOffer.artist_name || 'l\'artiste'}.</p>
-        ${data.customMessage ? `<p>${data.customMessage}</p>` : ''}
-        <p>Valable jusqu'au: ${data.validityDate || 'Non précisé'}</p>
-        <p><a href="${pdfUrl}" target="_blank">Télécharger l'offre PDF</a></p>
-        <p>Cordialement,<br>${data.sender.name}</p>
-      `;
+      // 3. Envoyer email (API simplifiée)
+      const subject = `Offre artiste - ${selectedOffer.artist_name || 'Artiste'}`;
+      const message = `
+Bonjour ${data.recipientFirstName || ''},
+
+Veuillez trouver ci-joint l'offre pour ${selectedOffer.artist_name || 'l\'artiste'}.
+${data.customMessage || ''}
+
+Valable jusqu'au: ${data.validityDate || 'Non précisé'}
+
+Télécharger l'offre: ${pdfUrl}
+
+Cordialement,
+${data.sender.name}
+      `.trim();
 
       await sendOfferEmail({
-        toEmail: data.email,
-        toName: data.recipientFirstName,
-        ccEmails: data.ccEmails,
-        sender: data.sender,
+        to: data.email,
         subject,
-        htmlContent,
-        pdfUrl,
-        pdfFileName: `Offre_${selectedOffer.artist_name || 'Artiste'}.pdf`,
-        artistName: selectedOffer.artist_name,
-        eventName: selectedOffer.event_name,
-        validityDate: data.validityDate,
-        customMessage: data.customMessage,
+        message,
+        pdfPath: selectedOffer.pdf_storage_path || '',
+        offerData: {
+          artist_name: selectedOffer.artist_name || 'Artiste',
+          stage_name: selectedOffer.stage_name || 'Stage',
+          amount_display: selectedOffer.amount_display ?? null,
+          currency: selectedOffer.currency ?? null,
+        },
       });
 
       // 4. Marquer comme envoyé
@@ -547,6 +550,7 @@ export default function AdminBookingPage() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function handleSavePerformance(perf: any) {
     try {
       // TODO: Implémenter la sauvegarde de performance
@@ -725,7 +729,7 @@ export default function AdminBookingPage() {
           setShowSendModal(false);
           setSelectedOffer(null);
         }}
-        offer={selectedOffer || {
+        offer={selectedOffer as any || {
           id: "",
           artist_name: "",
           stage_name: "",
@@ -782,7 +786,7 @@ export default function AdminBookingPage() {
         onConfirm={handleConfirmDeleteOffer}
         title="Supprimer l'offre"
         message="Êtes-vous sûr de vouloir supprimer cette offre ?"
-        itemName={deletingOffer?.artist_name}
+        itemName={deletingOffer?.artist_name || undefined}
         loading={deleting}
       />
     </div>
