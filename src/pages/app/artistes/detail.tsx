@@ -1,10 +1,12 @@
-import { User, ArrowLeft, Music, TrendingUp, Calendar, Mail, Phone, MapPin } from "lucide-react";
+import { User, ArrowLeft, Music, TrendingUp, Calendar, Mail, Phone, MapPin, Briefcase, Globe } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import { ArtistStatsChart } from "../../../components/artists/ArtistStatsChart";
 import { ContainerSongstats } from "../../../components/artist/ContainerSongstats";
 import { getCurrentCompanyId } from "../../../lib/tenant";
+import { formatPhoneNumber, getWhatsAppLink } from "../../../utils/phoneUtils";
+import type { CRMContact, CRMArtistContactLink } from "../../../types/crm";
 
 type Artist = {
   id: string;
@@ -35,10 +37,19 @@ type Artist = {
   };
 };
 
+type ArtistContact = CRMContact & {
+  link: CRMArtistContactLink;
+  roles?: Array<{
+    id: string;
+    label: string;
+  }>;
+};
+
 export default function ArtistDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [artist, setArtist] = useState<Artist | null>(null);
+  const [contacts, setContacts] = useState<ArtistContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -46,6 +57,7 @@ export default function ArtistDetailPage() {
   useEffect(() => {
     if (!id) return;
     fetchArtist();
+    fetchArtistContacts();
   }, [id]);
 
   const fetchArtist = async () => {
@@ -83,6 +95,123 @@ export default function ArtistDetailPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchArtistContacts = async () => {
+    try {
+      const cid = await getCurrentCompanyId(supabase);
+      
+      // Récupérer les liens artiste-contact avec les contacts
+      const { data: linksData, error: err } = await supabase
+        .from("crm_artist_contact_links")
+        .select(`
+          id,
+          company_id,
+          artist_id,
+          contact_id,
+          role_for_artist,
+          territory,
+          is_main_agent,
+          notes,
+          crm_contacts (
+            id,
+            first_name,
+            last_name,
+            display_name,
+            photo_url,
+            email_primary,
+            phone_mobile,
+            phone_whatsapp,
+            department_id
+          )
+        `)
+        .eq("company_id", cid)
+        .eq("artist_id", id);
+
+      if (err) {
+        console.error('Error fetching artist contacts:', err);
+        throw err;
+      }
+
+      if (!linksData || linksData.length === 0) {
+        setContacts([]);
+        return;
+      }
+
+      // Récupérer les rôles pour tous les contacts
+      const contactIds = linksData.map((item: any) => item.crm_contacts?.id).filter((id: any) => id != null);
+      
+      let rolesMap: { [key: string]: any[] } = {};
+      
+      if (contactIds.length > 0) {
+        const { data: rolesData } = await supabase
+          .from("crm_contact_role_links")
+          .select(`
+            contact_id,
+            role:contact_roles(id, label)
+          `)
+          .in("contact_id", contactIds);
+          
+        if (rolesData) {
+          rolesData.forEach((link: any) => {
+            if (!rolesMap[link.contact_id]) {
+              rolesMap[link.contact_id] = [];
+            }
+            if (link.role) {
+              rolesMap[link.contact_id].push(link.role);
+            }
+          });
+        }
+      }
+
+      // Transformer les données
+      const artistContacts: ArtistContact[] = linksData.map((item: any) => {
+        return {
+          ...item.crm_contacts,
+          roles: rolesMap[item.crm_contacts?.id] || [],
+          link: {
+            id: item.id,
+            company_id: item.company_id,
+            artist_id: item.artist_id,
+            contact_id: item.contact_id,
+            role_for_artist: item.role_for_artist,
+            territory: item.territory,
+            is_main_agent: item.is_main_agent,
+            notes: item.notes,
+            created_by: item.created_by,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+          },
+        };
+      });
+
+      // Trier pour mettre les booking agents en premier
+      artistContacts.sort((a, b) => {
+        // Vérifier si le contact a le rôle "Booking Agent" (insensible à la casse)
+        const aIsBookingAgent = a.roles?.some(role => 
+          role.label.toLowerCase().includes('booking') || role.label.toLowerCase().includes('agent')
+        );
+        const bIsBookingAgent = b.roles?.some(role => 
+          role.label.toLowerCase().includes('booking') || role.label.toLowerCase().includes('agent')
+        );
+
+        // 1. Les booking agents avant les autres
+        if (aIsBookingAgent && !bIsBookingAgent) return -1;
+        if (!aIsBookingAgent && bIsBookingAgent) return 1;
+
+        // 2. Parmi les booking agents, le main agent en premier
+        if (aIsBookingAgent && bIsBookingAgent) {
+          if (a.link.is_main_agent && !b.link.is_main_agent) return -1;
+          if (!a.link.is_main_agent && b.link.is_main_agent) return 1;
+        }
+
+        return 0;
+      });
+
+      setContacts(artistContacts);
+    } catch (err: any) {
+      console.error('Error fetching artist contacts:', err);
     }
   };
 
@@ -187,39 +316,92 @@ export default function ArtistDetailPage() {
             </div>
           )}
 
-          {/* Contact Card */}
-          <div className="card-surface p-6 rounded-xl space-y-4">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase">Contact</h3>
-            {artist.email && (
-              <div className="flex items-center gap-3 text-sm">
-                <Mail size={16} className="text-violet-400 flex-shrink-0" />
-                <a href={`mailto:${artist.email}`} className="text-gray-300 hover:text-violet-400">
-                  {artist.email}
-                </a>
-              </div>
-            )}
-            {artist.phone && (
-              <div className="flex items-center gap-3 text-sm">
-                <Phone size={16} className="text-violet-400 flex-shrink-0" />
-                <a href={`tel:${artist.phone}`} className="text-gray-300 hover:text-violet-400">
-                  {artist.phone}
-                </a>
-              </div>
-            )}
-            {artist.location && (
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin size={16} className="text-violet-400 flex-shrink-0" />
-                <span className="text-gray-300">{artist.location}</span>
-              </div>
-            )}
-            {!artist.email && !artist.phone && !artist.location && (
-              <p className="text-sm text-gray-400 italic">Aucune information de contact</p>
-            )}
-          </div>
         </div>
 
         {/* Right Column - Details */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Contact Card - Contacts CRM */}
+          <div className="card-surface p-6 rounded-xl">
+            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Contacts</h3>
+            {contacts.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <tbody>
+                    {contacts.map((contact) => (
+                      <tr 
+                        key={contact.id}
+                        className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                      >
+                        {/* 1. Fonction */}
+                        <td className="py-3 pr-4">
+                          <div className="flex flex-wrap items-center gap-1">
+                            {contact.link.is_main_agent && (
+                              <span className="text-violet-400">⭐</span>
+                            )}
+                            {contact.roles && contact.roles.length > 0 ? (
+                              contact.roles.map((role) => (
+                                <span key={role.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">
+                                  {role.label}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                            )}
+                            {contact.link.territory && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                • {contact.link.territory}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 2. Nom Prénom */}
+                        <td className="py-3 pr-4">
+                          <div className="text-sm text-gray-900 dark:text-white font-medium">
+                            {contact.display_name || `${contact.first_name} ${contact.last_name}`}
+                          </div>
+                        </td>
+
+                        {/* 3. Téléphone (WhatsApp) */}
+                        <td className="py-3 pr-4">
+                          {contact.phone_mobile ? (
+                            <a 
+                              href={getWhatsAppLink(contact.phone_mobile) || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-gray-500 dark:text-gray-400 hover:text-green-500 transition-colors inline-flex items-center gap-1.5"
+                            >
+                              <Phone size={14} />
+                              {formatPhoneNumber(contact.phone_mobile)}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                          )}
+                        </td>
+
+                        {/* 4. Mail */}
+                        <td className="py-3">
+                          {contact.email_primary ? (
+                            <a 
+                              href={`mailto:${contact.email_primary}`}
+                              className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-400 transition-colors inline-flex items-center gap-1.5"
+                            >
+                              <Mail size={14} />
+                              {contact.email_primary}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Aucun contact associé</p>
+            )}
+          </div>
           {/* Spotify Stats */}
           {artist.spotify_data && (
             <div className="card-surface p-6 rounded-xl">

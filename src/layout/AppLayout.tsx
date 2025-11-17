@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabaseClient'
 import { ChevronDown } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
-// Utilisation de l'instance centralis├®e de Supabase
+// Utilisation de l'instance centralisée de Supabase
 
 export default function AppLayout(){
   const location = useLocation()
@@ -20,16 +20,20 @@ export default function AppLayout(){
     const path = location.pathname
     const menus = {
       artistes: false,
+      booking: false,
       production: false,
       ground: false,
       hospitality: false,
       administration: false,
       contacts: false,
+      staff: false,
       settings: false
     }
     
     if (path.startsWith('/app/artistes')) {
       menus.artistes = true
+    } else if (path.startsWith('/app/booking')) {
+      menus.booking = true
     } else if (path.startsWith('/app/production')) {
       menus.production = true
       if (path.includes('/ground')) menus.ground = true
@@ -38,6 +42,8 @@ export default function AppLayout(){
       menus.administration = true
     } else if (path.startsWith('/app/contacts')) {
       menus.contacts = true
+    } else if (path.startsWith('/app/staff')) {
+      menus.staff = true
     } else if (path.startsWith('/app/settings')) {
       menus.settings = true
     }
@@ -51,20 +57,24 @@ export default function AppLayout(){
   useEffect(() => {
     const path = location.pathname
     
-    // R├®initialiser tous les menus
+    // Réinitialiser tous les menus
     const newOpenMenus = {
       artistes: false,
+      booking: false,
       production: false,
       ground: false,
       hospitality: false,
       administration: false,
       contacts: false,
+      staff: false,
       settings: false
     }
     
     // Ouvrir les menus selon le chemin actuel
     if (path.startsWith('/app/artistes')) {
       newOpenMenus.artistes = true
+    } else if (path.startsWith('/app/booking')) {
+      newOpenMenus.booking = true
     } else if (path.startsWith('/app/production')) {
       newOpenMenus.production = true
       if (path.includes('/ground')) newOpenMenus.ground = true
@@ -73,6 +83,8 @@ export default function AppLayout(){
       newOpenMenus.administration = true
     } else if (path.startsWith('/app/contacts')) {
       newOpenMenus.contacts = true
+    } else if (path.startsWith('/app/staff')) {
+      newOpenMenus.staff = true
     } else if (path.startsWith('/app/settings')) {
       newOpenMenus.settings = true
     }
@@ -108,7 +120,7 @@ export default function AppLayout(){
   }
 
   useEffect(() => {
-    // ├ëcouter les changements d'authentification
+    // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const uid = session?.user?.id;
       if (!uid) {
@@ -184,9 +196,6 @@ export default function AppLayout(){
                 <Link to="/app/artistes" className={`sidebar-item text-sm ${location.pathname === '/app/artistes' ? 'active' : ''}`}>
                   <Icon name="List" size={16}/> {t('list')}
                 </Link>
-                <Link to="/app/artistes/lineup" className={`sidebar-item text-sm ${location.pathname === '/app/artistes/lineup' ? 'active' : ''}`}>
-                  <Icon name="ListMusic" size={16}/> {t('lineup')}
-                </Link>
               </div>
             )}
           </div>
@@ -204,12 +213,18 @@ export default function AppLayout(){
             </button>
             {openMenus.booking && (
               <div className="ml-4 mt-0.5 space-y-0.5">
-                <Link to="/app/booking" className={`sidebar-item text-sm ${location.pathname === '/app/booking' ? 'active' : ''}`}>
-                  <Icon name="Briefcase" size={16}/> Offres
+                <Link to="/app/booking/offres" className={`sidebar-item text-sm ${location.pathname === '/app/booking/offres' ? 'active' : ''}`}>
+                  <Icon name="FileText" size={16}/> {t('offers')}
                 </Link>
-                <Link to="/app/timeline" className={`sidebar-item text-sm ${location.pathname === '/app/timeline' ? 'active' : ''}`}>
-                  <Icon name="CalendarClock" size={16}/> Timeline
+                <Link to="/app/booking/budget-artistique" className={`sidebar-item text-sm ${location.pathname === '/app/booking/budget-artistique' ? 'active' : ''}`}>
+                  <Icon name="DollarSign" size={16}/> {t('artistic_budget')}
                 </Link>
+                <button 
+                  onClick={() => window.open('/app/booking/timeline', '_blank')}
+                  className="sidebar-item text-sm w-full text-left"
+                >
+                  <Icon name="ListMusic" size={16}/> Lineup / Timeline
+                </button>
               </div>
             )}
           </div>
@@ -227,12 +242,6 @@ export default function AppLayout(){
             </button>
             {openMenus.administration && (
               <div className="ml-4 mt-0.5 space-y-0.5">
-                <Link to="/app/administration/booking" className={`sidebar-item text-sm ${location.pathname === '/app/administration/booking' ? 'active' : ''}`}>
-                  <Icon name="Calendar" size={16}/> {t('booking')}
-                </Link>
-                <Link to="/app/administration/budget-artistique" className={`sidebar-item text-sm ${location.pathname === '/app/administration/budget-artistique' ? 'active' : ''}`}>
-                  <Icon name="DollarSign" size={16}/> {t('artistic_budget')}
-                </Link>
                 <Link to="/app/administration/contrats" className={`sidebar-item text-sm ${location.pathname === '/app/administration/contrats' ? 'active' : ''}`}>
                   <Icon name="FileText" size={16}/> {t('contracts')}
                 </Link>
@@ -364,19 +373,22 @@ export default function AppLayout(){
 
           {/* Staff */}
           <div>
-            <button 
+            <button
               onClick={() => toggleMenu('staff')}
-              className="sidebar-item w-full flex items-center justify-between"
+              className={`sidebar-item w-full flex items-center justify-between ${location.pathname.startsWith('/app/staff') ? 'active' : ''}`}
             >
               <span className="flex items-center gap-2">
                 <Icon name="Users" size={18}/> {t('staff').toUpperCase()}
               </span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${openMenus.staff ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-200 ${openMenus.staff ? 'rotate-180' : ''}`}
+              />
             </button>
             {openMenus.staff && (
-              <div className="ml-4 mt-0.5 space-y-0.5">
+              <div className="ml-6 space-y-1 mt-1">
                 <Link to="/app/staff" className={`sidebar-item text-sm ${location.pathname === '/app/staff' ? 'active' : ''}`}>
-                  <Icon name="List" size={16}/> Liste
+                  <Icon name="Users" size={16}/> Bénévoles
                 </Link>
                 <Link to="/app/staff/planning" className={`sidebar-item text-sm ${location.pathname === '/app/staff/planning' ? 'active' : ''}`}>
                   <Icon name="Calendar" size={16}/> Planning
@@ -385,7 +397,7 @@ export default function AppLayout(){
                   <Icon name="Megaphone" size={16}/> Campagnes
                 </Link>
                 <Link to="/app/staff/communications" className={`sidebar-item text-sm ${location.pathname === '/app/staff/communications' ? 'active' : ''}`}>
-                  <Icon name="MessageSquare" size={16}/> Communications
+                  <Icon name="Mail" size={16}/> Communications
                 </Link>
                 <Link to="/app/staff/exports" className={`sidebar-item text-sm ${location.pathname === '/app/staff/exports' ? 'active' : ''}`}>
                   <Icon name="Download" size={16}/> Exports
@@ -394,43 +406,10 @@ export default function AppLayout(){
             )}
           </div>
 
-          {/* Settings */}
-          <div>
-            <button 
-              onClick={() => toggleMenu('settings')}
-              className="sidebar-item w-full flex items-center justify-between"
-            >
-              <span className="flex items-center gap-2">
-                <Icon name="Settings" size={18}/> {t('settings').toUpperCase()}
-              </span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${openMenus.settings ? 'rotate-180' : ''}`} />
-            </button>
-            {openMenus.settings && (
-              <div className="ml-4 mt-0.5 space-y-0.5">
-                <Link to="/app/settings" className={`sidebar-item text-sm ${location.pathname === '/app/settings' ? 'active' : ''}`}>
-                  <Icon name="Settings2" size={16}/> Général
-                </Link>
-                <Link to="/app/settings/events" className={`sidebar-item text-sm ${location.pathname === '/app/settings/events' ? 'active' : ''}`}>
-                  <Icon name="CalendarDays" size={16}/> Événements
-                </Link>
-                <Link to="/app/settings/contacts" className={`sidebar-item text-sm ${location.pathname === '/app/settings/contacts' ? 'active' : ''}`}>
-                  <Icon name="Contact" size={16}/> Contacts
-                </Link>
-                <Link to="/app/settings/staff" className={`sidebar-item text-sm ${location.pathname === '/app/settings/staff' ? 'active' : ''}`}>
-                  <Icon name="Users" size={16}/> Staff
-                </Link>
-                <Link to="/app/settings/ground" className={`sidebar-item text-sm ${location.pathname === '/app/settings/ground' ? 'active' : ''}`}>
-                  <Icon name="Truck" size={16}/> Ground
-                </Link>
-                <Link to="/app/settings/hospitality" className={`sidebar-item text-sm ${location.pathname === '/app/settings/hospitality' ? 'active' : ''}`}>
-                  <Icon name="Coffee" size={16}/> Hospitality
-                </Link>
-                <Link to="/app/settings/admin" className={`sidebar-item text-sm ${location.pathname === '/app/settings/admin' ? 'active' : ''}`}>
-                  <Icon name="ShieldCheck" size={16}/> Administration
-                </Link>
-              </div>
-            )}
-          </div>
+          {/* Paramètres */}
+          <Link to="/app/settings" className={`sidebar-item ${location.pathname.startsWith('/app/settings') ? 'active' : ''}`}>
+            <Icon name="Settings" size={18}/> PARAMÈTRES
+          </Link>
         </nav>
 
         {/* User Menu at bottom */}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Music, Search, Plus, Grid3x3, List, Edit, Trash2 } from "lucide-react";
+import { Music, Search, Plus, Grid3x3, List, Edit2, Trash2 } from "lucide-react";
 import { useI18n } from "../../../lib/i18n";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
@@ -9,7 +9,8 @@ import { getCurrentCompanyId } from "../../../lib/tenant";
 import { supabase } from "../../../lib/supabaseClient";
 import AddArtistModal from "./partials/AddArtistModal";
 import EditArtistModal from "./partials/EditArtistModal";
-import ConfirmDeleteModal from "../../../components/ui/ConfirmDeleteModal";
+import { ConfirmDeleteModal } from "../../../components/ui/ConfirmDeleteModal";
+import { useEventStore } from "../../../store/useEventStore";
 
 type Artist = {
   id: string;
@@ -40,6 +41,7 @@ type ViewMode = 'grid' | 'list';
 
 export default function ArtistesPage() {
   const { t } = useI18n();
+  const currentEvent = useEventStore((state) => state.currentEvent);
   const navigate = useNavigate();
   
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -450,56 +452,58 @@ export default function ArtistesPage() {
 
           {/* List view */}
           {viewMode === 'list' && (
-            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-                <thead className="bg-gray-50 dark:bg-white/5">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-violet-400 transition-colors select-none"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-violet-400 transition-colors select-none"
                       onClick={() => handleSort('name')}
                     >
                       <div className="flex items-center gap-2">
                         {t('artists.artist')}
-                        <span className={sortColumn === 'name' ? 'text-violet-400' : 'text-gray-300 dark:text-gray-600'}>
+                        <span className={sortColumn === 'name' ? 'text-violet-400' : 'text-gray-400 dark:text-gray-500'}>
                           {sortColumn === 'name' && sortDirection === 'asc' ? '▲' : '▼'}
                         </span>
                       </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Réseaux sociaux
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       GIG
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-transparent divide-y divide-gray-200 dark:divide-white/10">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {artists.map((artist) => (
                     <tr
                       key={artist.id}
-                      className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      style={{ transition: 'background 0.15s ease' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover-row)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = ''}
                     >
                       <td 
-                        className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                        className="px-4 py-3 whitespace-nowrap cursor-pointer"
                         onClick={() => handleArtistClick(artist.id)}
                       >
                         <div className="flex items-center">
                           <img
-                            className="h-10 w-10 rounded-full object-cover hover:ring-2 hover:ring-violet-400 transition-all"
+                            className="h-10 w-10 rounded-full object-cover border border-violet-500"
                             src={artist.spotify_data?.image_url || `https://api.dicebear.com/7.x/initials/svg?seed=${artist.name}`}
                             alt={artist.name}
                           />
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white hover:text-violet-400 transition-colors uppercase">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white uppercase">
                               {artist.name}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {/* Website */}
                           {artist.social_media_data?.website_url ? (
@@ -616,11 +620,11 @@ export default function ArtistesPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {/* Colonne GIG - à remplir plus tard */}
                         <span className="text-gray-400"></span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={(e) => {
@@ -630,7 +634,7 @@ export default function ArtistesPage() {
                             className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
                             title="Modifier l'artiste"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={(e) => {
@@ -680,6 +684,7 @@ export default function ArtistesPage() {
       {showAdd && companyId && (
         <AddArtistModal
           companyId={companyId}
+          eventId={currentEvent?.id || null}
           onClose={() => setShowAdd(false)}
           onSaved={() => { setShowAdd(false); setCurrentPage(1); fetchArtists(); }}
         />
