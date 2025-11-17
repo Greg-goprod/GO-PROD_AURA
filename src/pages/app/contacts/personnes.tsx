@@ -109,7 +109,7 @@ export default function PersonnesPage() {
   const availableCompanies = Array.from(
     new Set(
       contacts.flatMap(contact => 
-        contact.companies?.map(company => JSON.stringify({ id: company.id, name: company.name })) || []
+        contact.linked_companies?.map((company: any) => JSON.stringify({ id: company.id, name: company.name })) || []
       )
     )
   ).map(str => JSON.parse(str));
@@ -132,7 +132,7 @@ export default function PersonnesPage() {
 
       // Filtre par entreprise
       const matchesCompany = companyFilter === 'all' || 
-        contact.companies?.some(company => company.id === companyFilter);
+        contact.linked_companies?.some((company: any) => company.id === companyFilter);
 
       return matchesSearch && matchesRole && matchesCompany;
     })
@@ -642,7 +642,7 @@ export default function PersonnesPage() {
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {contact.roles && contact.roles.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {contact.roles.map((role, idx) => (
+                          {contact.roles.map((role) => (
                             <span key={role.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">
                               {role.label}
                             </span>
