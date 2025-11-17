@@ -41,6 +41,37 @@ export function DailySummaryCards({
     return feeAmount * (commissionPercentage / 100);
   };
 
+  // Conversion en CHF avec la même logique que budget-artistique.tsx
+  const convertToCHF = React.useCallback((amount: number, currency: string): number => {
+    if (!currencyRates) return amount;
+    
+    if (currency === 'CHF') return amount;
+    
+    // L'API donne les taux depuis EUR
+    const rateCHF = currencyRates.CHF || 1;
+    
+    if (currency === 'EUR') {
+      return amount * rateCHF;
+    }
+    
+    // Pour USD, GBP, etc. : convertir d'abord en EUR puis en CHF
+    const rateFromEUR = currencyRates[currency];
+    if (!rateFromEUR) return amount;
+    
+    // Convertir en EUR puis en CHF
+    const amountInEUR = amount / rateFromEUR;
+    return amountInEUR * rateCHF;
+  }, [currencyRates]);
+
+  // Convertir tous les montants d'un objet vers CHF
+  const convertAllToCHF = React.useCallback((amountsByCurrency: Record<string, number>): number => {
+    let totalCHF = 0;
+    Object.entries(amountsByCurrency).forEach(([currency, amount]) => {
+      totalCHF += convertToCHF(amount, currency);
+    });
+    return totalCHF;
+  }, [convertToCHF]);
+
   // Calculer les statistiques par jour
   const dayStats = React.useMemo(() => {
     return days.map(day => {
@@ -117,42 +148,11 @@ export function DailySummaryCards({
         totalWithholdingTaxCHF: Math.round(totalWithholdingTaxCHF * 100) / 100,
       };
     });
-  }, [days, performances, currencyRates]);
+  }, [days, performances, convertToCHF]);
 
   // Helper pour formater les montants
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  };
-
-  // Conversion en CHF avec la même logique que budget-artistique.tsx
-  const convertToCHF = (amount: number, currency: string): number => {
-    if (!currencyRates) return amount;
-    
-    if (currency === 'CHF') return amount;
-    
-    // L'API donne les taux depuis EUR
-    const rateCHF = currencyRates.CHF || 1;
-    
-    if (currency === 'EUR') {
-      return amount * rateCHF;
-    }
-    
-    // Pour USD, GBP, etc. : convertir d'abord en EUR puis en CHF
-    const rateFromEUR = currencyRates[currency];
-    if (!rateFromEUR) return amount;
-    
-    // Convertir en EUR puis en CHF
-    const amountInEUR = amount / rateFromEUR;
-    return amountInEUR * rateCHF;
-  };
-
-  // Convertir tous les montants d'un objet vers CHF
-  const convertAllToCHF = (amountsByCurrency: Record<string, number>): number => {
-    let totalCHF = 0;
-    Object.entries(amountsByCurrency).forEach(([currency, amount]) => {
-      totalCHF += convertToCHF(amount, currency);
-    });
-    return totalCHF;
   };
 
   // Préparer 9 colonnes : 7 jours + 2 colonnes pour totaux
