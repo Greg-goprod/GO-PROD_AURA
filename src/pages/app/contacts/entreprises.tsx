@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 import { Building2, Plus, Search, Mail, Phone, Edit2, Trash2, FileText, CreditCard, Users } from 'lucide-react';
 import { Button } from '@/components/aura/Button';

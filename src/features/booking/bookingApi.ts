@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from "@/lib/supabaseClient";
 import type { Offer, OfferFilters, OfferSort, OfferStatus, TodoPerformance, RejectedPerformance } from "./bookingTypes";
 import { generateOfferPdfAndUpload } from "./pdf/pdfFill";

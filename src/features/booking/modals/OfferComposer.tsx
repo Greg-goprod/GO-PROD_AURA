@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import { FileText, Eye, Send, DollarSign, User, Plus } from "lucide-react";
 import { DraggableModal } from "../../../components/aura/DraggableModal";

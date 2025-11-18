@@ -19,12 +19,10 @@ import {
   fetchEventStages,
   fetchPerformances,
   updatePerformance,
-  createPerformance,
   deletePerformance,
   type EventDay,
   type EventStage,
   type Performance,
-  type PerformanceCreate,
 } from "../features/timeline/timelineApi";
 
 export default function LineupTimelinePage() {
