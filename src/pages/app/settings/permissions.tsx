@@ -11,8 +11,6 @@ export default function PermissionsSettingsPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('permissions').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Paramètres / Permissions</p>
-
       {/* TODO: Implémenter la gestion des permissions utilisateur */}
     </div>
   );

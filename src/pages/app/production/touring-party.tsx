@@ -267,8 +267,6 @@ export default function TouringPartyPage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Touring Party</p>
-
       {/* Dashboard Statistiques */}
       {stats && (
         <div className="mb-6">

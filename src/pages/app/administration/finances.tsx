@@ -98,8 +98,6 @@ export default function FinancesPage() {
         </div>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Administration / Finances</p>
-
       {loading ? (
         <div className="text-gray-600 dark:text-gray-300">Chargement...</div>
       ) : !eventId ? (

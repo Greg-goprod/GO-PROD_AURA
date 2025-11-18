@@ -223,8 +223,6 @@ export default function TravelPage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Travels</p>
-
       {/* Liste des travels */}
       {travels.length === 0 ? (
         <div className="text-center text-gray-500 dark:text-gray-400 py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">

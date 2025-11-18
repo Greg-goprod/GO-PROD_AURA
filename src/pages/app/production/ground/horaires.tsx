@@ -11,8 +11,6 @@ export default function HorairesPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('schedules').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Ground / Horaires</p>
-
       {/* TODO: Implémenter la gestion des horaires de transport */}
     </div>
   );

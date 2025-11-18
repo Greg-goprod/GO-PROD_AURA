@@ -542,8 +542,6 @@ export default function BudgetArtistiquePage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Booking / Budget artistique</p>
-
       {/* Dashboard avec les 9 containers */}
       <DailySummaryCards 
         days={days} 

@@ -11,8 +11,6 @@ export default function GroundPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('ground').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Ground / Vue d'ensemble</p>
-
       {/* TODO: Implémenter la vue d'ensemble du transport terrestre */}
     </div>
   );

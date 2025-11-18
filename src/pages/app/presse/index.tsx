@@ -11,8 +11,6 @@ export default function PressePage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('press').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Presse / Vue d'ensemble</p>
-
       {/* TODO: Implémenter la gestion de la presse (communiqués, dossiers, contacts médias) */}
     </div>
   );

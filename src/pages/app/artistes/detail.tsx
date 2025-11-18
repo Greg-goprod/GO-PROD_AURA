@@ -265,8 +265,6 @@ export default function ArtistDetailPage() {
         </button>
       </header>
 
-      <p className="text-sm text-gray-400">Artistes / {artist.name.toUpperCase()}</p>
-
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Profile */}

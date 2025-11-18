@@ -323,8 +323,6 @@ export default function MissionsPage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Ground / Missions</p>
-
       {/* 2 colonnes */}
       <div className="grid grid-cols-2 gap-6">
         {/* Colonne 1 : À planifier */}

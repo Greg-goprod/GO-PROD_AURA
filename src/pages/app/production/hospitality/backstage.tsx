@@ -11,8 +11,6 @@ export default function BackstagePage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('backstage').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Hospitality / Backstage</p>
-
       {/* TODO: Implémenter la gestion du backstage (loges, accès, passes) */}
     </div>
   );

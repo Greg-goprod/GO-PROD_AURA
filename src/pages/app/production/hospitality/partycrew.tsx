@@ -11,8 +11,6 @@ export default function PartyCrewPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('party_crew').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Hospitality / Party Crew</p>
-
       {/* TODO: Implémenter la gestion de l'équipe événementielle */}
     </div>
   );

@@ -121,8 +121,6 @@ export default function ChauffeursPage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Ground / Chauffeurs</p>
-
       {/* Recherche */}
       <div className="mb-6">
         <div className="relative">

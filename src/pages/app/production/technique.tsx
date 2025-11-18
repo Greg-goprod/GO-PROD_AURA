@@ -11,8 +11,6 @@ export default function TechniquePage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('technique').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Technique</p>
-
       {/* TODO: Implémenter la gestion technique (matériel, setup, fiche technique) */}
     </div>
   );

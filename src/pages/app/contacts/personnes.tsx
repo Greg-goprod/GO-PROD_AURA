@@ -318,8 +318,6 @@ export default function PersonnesPage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Contacts / Personnes</p>
-
       {/* Barre de recherche et filtres */}
       <div className="mb-6 space-y-4">
         {/* Ligne unique : recherche + filtres + toggle vue */}

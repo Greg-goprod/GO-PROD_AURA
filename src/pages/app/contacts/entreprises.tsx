@@ -315,8 +315,6 @@ export default function EntreprisesPage() {
         </Button>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Contacts / Entreprises</p>
-
       {/* Barre de recherche et filtres */}
       <div className="mb-6 space-y-4">
         {/* Ligne unique : recherche + filtre */}

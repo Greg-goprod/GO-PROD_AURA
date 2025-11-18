@@ -11,8 +11,6 @@ export default function SettingsIndexPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('settings').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Paramètres / Vue d'ensemble</p>
-
       {/* TODO: Implémenter la vue d'ensemble des paramètres */}
     </div>
   );

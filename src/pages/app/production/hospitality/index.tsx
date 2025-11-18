@@ -11,8 +11,6 @@ export default function HospitalityPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('hospitality').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Production / Hospitality / Vue d'ensemble</p>
-
       {/* TODO: Implémenter la vue d'ensemble de l'hospitalité */}
     </div>
   );

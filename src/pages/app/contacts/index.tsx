@@ -11,8 +11,6 @@ export default function ContactsPage() {
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('contacts').toUpperCase()}</h1>
       </header>
 
-      <p className="text-sm text-gray-400 mb-6">Contacts / Vue d'ensemble</p>
-
       {/* TODO: Implémenter la gestion des contacts (personnes et entreprises) */}
     </div>
   );
