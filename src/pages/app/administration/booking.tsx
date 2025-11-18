@@ -474,6 +474,7 @@ export default function AdminBookingPage() {
   }
 
   // TODO: Implement email sending functionality
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function _handleSendOfferEmail(data: {
     email: string; ccEmails?: string[]; sender: { name:string; email:string; label?:string };
     recipientFirstName?: string; validityDate?: string; customMessage?: string;
@@ -552,6 +553,7 @@ ${data.sender.name}
   }
 
   // TODO: Implement performance save functionality
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function _handleSavePerformance(perf: any) {
     try {
       // TODO: Implémenter la sauvegarde de performance
