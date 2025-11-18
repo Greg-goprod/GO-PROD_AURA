@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardBody } from "@/components/aura/Card";
@@ -474,6 +473,7 @@ export default function AdminBookingPage() {
     }
   }
 
+  // TODO: Implement email sending functionality
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function handleSendOfferEmail(data: {
     email: string; ccEmails?: string[]; sender: { name:string; email:string; label?:string };
@@ -552,6 +552,7 @@ ${data.sender.name}
     }
   }
 
+  // TODO: Implement performance save functionality
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function handleSavePerformance(perf: any) {
     try {
