@@ -568,11 +568,6 @@ ${data.sender.name}
     <div className="p-6 space-y-6">
       <PageHeader
         title="Booking"
-        subtitle={
-          <span>
-            {demoMode ? "Mode démo" : "Mode production"} • {offers.length} offres
-          </span>
-        }
         actions={
           <>
             <Button
