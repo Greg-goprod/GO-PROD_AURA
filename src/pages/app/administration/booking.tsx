@@ -474,6 +474,7 @@ export default function AdminBookingPage() {
   }
 
   // TODO: Implement email sending functionality
+  // @ts-ignore - Fonction TODO non utilisée pour le moment
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function _handleSendOfferEmail(data: {
     email: string; ccEmails?: string[]; sender: { name:string; email:string; label?:string };
@@ -553,6 +554,7 @@ ${data.sender.name}
   }
 
   // TODO: Implement performance save functionality
+  // @ts-ignore - Fonction TODO non utilisée pour le moment
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function _handleSavePerformance(perf: any) {
     try {
