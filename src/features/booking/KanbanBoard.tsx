@@ -1,4 +1,3 @@
-import React from "react";
 import type { Offer, OfferStatus } from "./bookingTypes";
 import { Card } from "@/components/aura/Card";
 import { Badge } from "@/components/aura/Badge";
@@ -24,7 +23,6 @@ export type KanbanItem =
 
 export function KanbanBoard({
   columns,
-  onMove,
   onQuickAction,
   onSendOffer,
   onModifyOffer,
@@ -34,7 +32,6 @@ export function KanbanBoard({
   onExportContract,
 }: {
   columns: { id: ColumnId; title: string; offers: KanbanItem[] }[];
-  onMove: (offerId: string, newStatus: ColumnId) => void;
   onQuickAction: (action: "create_offer", item: any) => void;
   onSendOffer: (offer: Offer) => void;
   onModifyOffer: (offer: Offer) => void;
@@ -43,30 +40,62 @@ export function KanbanBoard({
   onDeleteOffer: (offerId: string) => void;
   onExportContract?: (offer: Offer) => void;
 }) {
-  const color = (id: ColumnId) =>
-    id === "draft_and_todo" ? "gray" : id === "ready_to_send" ? "blue" : id === "sent" ? "yellow" : id === "accepted" ? "green" : "red";
+  // ============================================
+  // PALETTE AURA OFFICIELLE - Couleurs Kanban Offres
+  // ============================================
+  // draft_and_todo → Taupe gray (#919399)
+  // ready_to_send → Eminence (#661B7D) - Violet AURA principal
+  // sent → Light green (#90EE90)
 
   const getColumnStyle = (id: ColumnId) => {
-    const baseStyle = "border border-dashed rounded-lg p-2 min-h-[200px]";
-    // Utilise les mêmes couleurs que les cartes artistes (card-surface)
-    // Mode clair: blanc avec bordure grise, Mode sombre: bleu-gris foncé avec bordure bleu-gris
+    const baseStyle = "border-2 border-dashed rounded-lg p-3 min-h-[200px]";
+    
+    // Couleurs AURA officielles pour chaque colonne
+    if (id === "draft_and_todo") {
+      return `${baseStyle} bg-[#91939915] border-[#919399]`;
+    }
+    if (id === "ready_to_send") {
+      return `${baseStyle} bg-[#661B7D15] border-[#661B7D]`;
+    }
+    if (id === "sent") {
+      return `${baseStyle} bg-[#90EE9015] border-[#90EE90]`;
+    }
+    
+    // Fallback
     return `${baseStyle} bg-white dark:bg-[#161C31] border-gray-200 dark:border-[#24304A]`;
   };
 
   const getHeaderStyle = (id: ColumnId) => {
-    const baseStyle = "flex items-center justify-between p-3 rounded-lg border";
-    // Utilise les mêmes couleurs que les cartes artistes (card-surface)
-    // Mode clair: blanc avec bordure grise, Mode sombre: bleu-gris foncé avec bordure bleu-gris
+    const baseStyle = "flex items-center justify-between p-3 rounded-lg border-2";
+    
+    // En-têtes avec les couleurs AURA officielles
+    if (id === "draft_and_todo") {
+      return `${baseStyle} bg-[#919399] border-[#919399] text-white`;
+    }
+    if (id === "ready_to_send") {
+      return `${baseStyle} bg-[#661B7D] border-[#661B7D] text-white`;
+    }
+    if (id === "sent") {
+      return `${baseStyle} bg-[#90EE90] border-[#90EE90] text-gray-900`;
+    }
+    
+    // Fallback
     return `${baseStyle} bg-white dark:bg-[#161C31] border-gray-200 dark:border-[#24304A]`;
   };
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {columns.map((col) => (
         <div key={col.id} className="space-y-3">
-          {/* Header de colonne plus contrasté */}
+          {/* Header de colonne avec couleurs AURA */}
           <div className={getHeaderStyle(col.id)}>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{col.title}</h3>
-            <Badge color={color(col.id)}>{col.offers.length}</Badge>
+            <h3 className={`font-semibold text-sm ${col.id === 'sent' ? 'text-gray-900' : 'text-white'}`}>
+              {col.title}
+            </h3>
+            <div className={`px-2.5 py-0.5 rounded-full ${col.id === 'sent' ? 'bg-gray-900/20' : 'bg-white/20'} backdrop-blur-sm`}>
+              <span className={`font-bold text-xs ${col.id === 'sent' ? 'text-gray-900' : 'text-white'}`}>
+                {col.offers.length}
+              </span>
+            </div>
           </div>
           
           {/* Zone de contenu avec bordure plus marquée */}

@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { FileText, Eye, Send, Calendar, DollarSign, User, MapPin, Clock, Plus } from "lucide-react";
-import { Modal } from "../../../components/aura/Modal";
+import { useState, useEffect, useCallback } from "react";
+import { FileText, Eye, Send, DollarSign, User, Plus } from "lucide-react";
+import { DraggableModal } from "../../../components/aura/DraggableModal";
 import { Button } from "../../../components/aura/Button";
-import { Input } from "../../../components/aura/Input";
 import { useToast } from "../../../components/aura/ToastProvider";
 import { Accordion } from "../../../components/ui/Accordion";
+import { DatePickerPopup } from "../../../components/ui/pickers/DatePickerPopup";
+import { TimePickerPopup } from "../../../components/ui/pickers/TimePickerPopup";
 import { supabase } from "../../../lib/supabaseClient";
 // import { generateOfferPdfAndUpload } from "../pdf/pdfFill";
-import { createSignedOfferPdfUrl, createOffer, updateOffer } from "../bookingApi";
+import { createOffer, updateOffer } from "../bookingApi";
 
 import {
   fetchArtists,
-  fetchEventDays,
   fetchEventStages,
   type Artist,
-  type EventDay,
   type EventStage,
 } from "../../timeline/timelineApi";
 
@@ -136,7 +135,6 @@ export function OfferComposer({
   // =============================================================================
   const [artists, setArtists] = useState<Artist[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [days, setDays] = useState<EventDay[]>([]);
   const [stages, setStages] = useState<EventStage[]>([]);
   const [bookingExtras, setBookingExtras] = useState<BookingExtra[]>([]);
   const [exclusivityClauses, setExclusivityClauses] = useState<ExclusivityClause[]>([]);
@@ -203,6 +201,11 @@ export function OfferComposer({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   // =============================================================================
+  // ÉTATS - Données Budget Artistique
+  // =============================================================================
+  const [fieldsFromBudget, setFieldsFromBudget] = useState<Set<string>>(new Set());
+  
+  // =============================================================================
   // CHARGEMENT INITIAL DES DONNÉES
   // =============================================================================
   useEffect(() => {
@@ -214,14 +217,12 @@ export function OfferComposer({
         // Chargement parallèle de toutes les données
         const [
           artistsData,
-          daysData,
           stagesData,
           contactsData,
           extrasData,
           clausesData,
         ] = await Promise.all([
           fetchArtists(companyId),
-          fetchEventDays(eventId),
           fetchEventStages(eventId),
           loadContacts(companyId),
           loadBookingExtras(),
@@ -229,7 +230,6 @@ export function OfferComposer({
         ]);
         
         setArtists(artistsData);
-        setDays(daysData);
         setStages(stagesData);
         setContacts(contactsData);
         setBookingExtras(extrasData);
@@ -244,7 +244,7 @@ export function OfferComposer({
     };
     
     loadData();
-  }, [open, eventId, companyId]);
+  }, [open, eventId, companyId, toastError]);
   
   // =============================================================================
   // CHARGEMENT CONTACTS - UNIQUEMENT BOOKING AGENTS
@@ -301,6 +301,60 @@ export function OfferComposer({
       return null;
     }
   }
+  
+  // =============================================================================
+  // CHARGEMENT DONNÉES FINANCIÈRES DEPUIS BUDGET ARTISTIQUE
+  // =============================================================================
+  const loadBudgetData = useCallback(async (artistId: string, eventId: string) => {
+    try {
+      console.log(`[BUDGET] Chargement données pour artiste ${artistId}, event ${eventId}`);
+      
+      const { data, error } = await supabase
+        .from("artist_performances")
+        .select("fee_amount, fee_currency, fee_is_net, commission_percentage")
+        .eq("artist_id", artistId)
+        .eq("event_id", eventId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (data && data.fee_amount !== null) {
+        console.log(`[BUDGET] Données trouvées:`, data);
+        
+        const newFieldsFromBudget = new Set<string>();
+        
+        // Pré-remplir les champs financiers
+        if (data.fee_amount !== null) {
+          if (data.fee_is_net) {
+            setFormData(prev => ({ ...prev, amount_net: data.fee_amount, amount_is_net: true, amount_gross: null }));
+          } else {
+            setFormData(prev => ({ ...prev, amount_gross: data.fee_amount, amount_is_net: false, amount_net: null }));
+          }
+          newFieldsFromBudget.add('amount');
+        }
+        
+        if (data.fee_currency) {
+          setFormData(prev => ({ ...prev, currency: data.fee_currency as CurrencyCode }));
+          newFieldsFromBudget.add('currency');
+        }
+        
+        if (data.commission_percentage !== null) {
+          setFormData(prev => ({ ...prev, agency_commission_pct: data.commission_percentage }));
+          newFieldsFromBudget.add('commission');
+        }
+        
+        setFieldsFromBudget(newFieldsFromBudget);
+        
+        toastSuccess("💰 Données financières chargées depuis le Budget Artistique");
+      } else {
+        console.log("[BUDGET] Aucune donnée financière trouvée");
+        setFieldsFromBudget(new Set());
+      }
+    } catch (error) {
+      console.error("[BUDGET] Erreur chargement:", error);
+      setFieldsFromBudget(new Set());
+    }
+  }, [toastSuccess]);
   
   // =============================================================================
   // CHARGEMENT BOOKING EXTRAS
@@ -411,12 +465,12 @@ export function OfferComposer({
         performance_time: prefilledData.performance_time ? prefilledData.performance_time.slice(0, 5) : "14:00",
         duration: prefilledData.duration || 60,
         currency: (prefilledData.fee_currency || "EUR") as CurrencyCode,
-        amount_net: prefilledData.fee_amount,
-        amount_gross: prefilledData.fee_amount,
+        amount_net: prefilledData.fee_amount ?? null,
+        amount_gross: prefilledData.fee_amount ?? null,
         amount_is_net: true,
         amount_gross_is_subject_to_withholding: false,
         withholding_note: "",
-        amount_display: prefilledData.fee_amount,
+        amount_display: prefilledData.fee_amount ?? null,
         agency_commission_pct: null,
         validity_date: "",
       });
@@ -427,7 +481,7 @@ export function OfferComposer({
   }, [open, editingOffer, prefilledData]);
   
   // =============================================================================
-  // AUTO-CHARGEMENT DU BOOKING AGENT QUAND L'ARTISTE CHANGE
+  // AUTO-CHARGEMENT DU BOOKING AGENT ET BUDGET QUAND L'ARTISTE CHANGE
   // =============================================================================
   useEffect(() => {
     if (!formData.artist_id || !open) return;
@@ -443,8 +497,14 @@ export function OfferComposer({
       }
     };
     
+    // Charger les données financières du Budget Artistique
+    const loadBudget = async () => {
+      await loadBudgetData(formData.artist_id, eventId);
+    };
+    
     loadAgentForArtist();
-  }, [formData.artist_id, open]);
+    loadBudget();
+  }, [formData.artist_id, open, eventId, loadBudgetData]);
   
   // =============================================================================
   // CALCUL AUTOMATIQUE DU MONTANT D'AFFICHAGE
@@ -555,11 +615,12 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // HELPER : Classe CSS pour champs avec erreur
+  // HELPER : Classe CSS pour champs avec erreur OU pré-remplis depuis budget
   // =============================================================================
   const getFieldClassName = (fieldName: string, baseClassName: string = ""): string => {
     const errorClass = errors[fieldName] ? "border-red-500 bg-red-50 dark:bg-red-900/10" : "";
-    return `${baseClassName} ${errorClass}`.trim();
+    const budgetClass = fieldsFromBudget.has(fieldName) ? "border-[#90EE90] bg-[#90EE9015] dark:border-[#90EE90] dark:bg-[#90EE9020]" : "";
+    return `${baseClassName} ${errorClass || budgetClass}`.trim();
   };
   
   // =============================================================================
@@ -678,6 +739,9 @@ export function OfferComposer({
       // Sauvegarder les extras
       await saveOfferExtras(offerId, selectedExtras);
       
+      // Mettre à jour les données financières dans artist_performances
+      await updateArtistPerformanceFinancials();
+      
       // Mise à jour statut si ready_to_send
       if (status === "ready_to_send") {
         await updateOffer(offerId, {
@@ -699,6 +763,52 @@ export function OfferComposer({
       setSaving(false);
     }
   };
+  
+  // =============================================================================
+  // MISE À JOUR DES DONNÉES FINANCIÈRES DANS ARTIST_PERFORMANCES
+  // =============================================================================
+  async function updateArtistPerformanceFinancials(): Promise<void> {
+    try {
+      // Si l'utilisateur a modifié les données financières, mettre à jour artist_performances
+      const feeAmount = formData.amount_is_net ? formData.amount_net : formData.amount_gross;
+      
+      if (!feeAmount || !formData.artist_id) return;
+      
+      console.log("[BUDGET] Mise à jour des données financières dans artist_performances");
+      
+      // Chercher la performance
+      const { data: existingPerf } = await supabase
+        .from("artist_performances")
+        .select("id")
+        .eq("artist_id", formData.artist_id)
+        .eq("event_id", eventId)
+        .maybeSingle();
+      
+      const updateData = {
+        fee_amount: feeAmount,
+        fee_currency: formData.currency,
+        fee_is_net: formData.amount_is_net,
+        commission_percentage: formData.agency_commission_pct,
+      };
+      
+      if (existingPerf) {
+        // Mettre à jour
+        const { error } = await supabase
+          .from("artist_performances")
+          .update(updateData)
+          .eq("id", existingPerf.id);
+        
+        if (error) throw error;
+        console.log("[BUDGET] Données financières mises à jour");
+      } else {
+        // Créer une nouvelle entrée si nécessaire (optionnel)
+        console.log("[BUDGET] Aucune performance existante, données non sauvegardées");
+      }
+    } catch (error) {
+      console.error("[BUDGET] Erreur mise à jour artist_performances:", error);
+      // Ne pas bloquer la sauvegarde de l'offre si cette mise à jour échoue
+    }
+  }
   
   // =============================================================================
   // SAUVEGARDE DES EXTRAS
@@ -810,11 +920,11 @@ export function OfferComposer({
   // =============================================================================
   if (loading) {
     return (
-      <Modal open={open} onClose={onClose} title="Composer une offre">
+      <DraggableModal open={open} onClose={onClose} title="Composer une offre">
         <div className="p-8 text-center">
           <div className="text-gray-500 dark:text-gray-400">Chargement...</div>
         </div>
-      </Modal>
+      </DraggableModal>
     );
   }
   
@@ -924,46 +1034,52 @@ export function OfferComposer({
           <div className="grid grid-cols-3 gap-4">
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                className={getFieldClassName("date_time", "w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
-                value={formData.date_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, date_time: e.target.value }))}
+              <DatePickerPopup
+                label="Date *"
+                value={formData.date_time ? new Date(formData.date_time) : null}
+                onChange={(date) => {
+                  if (date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    setFormData(prev => ({ ...prev, date_time: `${year}-${month}-${day}` }));
+                  } else {
+                    setFormData(prev => ({ ...prev, date_time: "" }));
+                  }
+                }}
+                placeholder="Sélectionner une date"
+                error={errors.date_time}
+                className={getFieldClassName("date_time")}
+                size="sm"
               />
-              {errors.date_time && (
-                <span className="text-sm text-red-600 dark:text-red-400">{errors.date_time}</span>
-              )}
             </div>
 
             {/* Heure avec bouton TBC */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Heure <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  disabled={isTBC}
-                  className={getFieldClassName("performance_time", "flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50")}
-                  value={isTBC ? "00:00" : formData.performance_time}
-                  onChange={(e) => setFormData(prev => ({ ...prev, performance_time: e.target.value }))}
-                />
-                <Button
-                  variant={isTBC ? "primary" : "ghost"}
-                  size="sm"
-                  onClick={handleToggleTBC}
-                  title="To Be Confirmed"
-                >
-                  <Clock className="w-4 h-4 mr-1" />
-                  TBC
-                </Button>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Heure <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <TimePickerPopup
+                    value={isTBC ? null : formData.performance_time}
+                    onChange={(time) => setFormData(prev => ({ ...prev, performance_time: time || "14:00" }))}
+                    placeholder="Sélectionner une heure"
+                    disabled={isTBC}
+                    error={errors.performance_time}
+                    className={getFieldClassName("performance_time", "flex-1")}
+                    size="sm"
+                  />
+                  <Button
+                    variant={isTBC ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={handleToggleTBC}
+                    title="To Be Confirmed"
+                  >
+                    TBC
+                  </Button>
+                </div>
               </div>
-              {errors.performance_time && (
-                <span className="text-sm text-red-600 dark:text-red-400">{errors.performance_time}</span>
-              )}
             </div>
 
             {/* Durée */}
@@ -1009,14 +1125,23 @@ export function OfferComposer({
 
           {/* Deadline */}
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Deadline (Date de validité) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              className={getFieldClassName("validity_date", "w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
-              value={formData.validity_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, validity_date: e.target.value }))}
+            <DatePickerPopup
+              label="Deadline (Date de validité) *"
+              value={formData.validity_date ? new Date(formData.validity_date) : null}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const day = String(date.getDate()).padStart(2, '0');
+                  setFormData(prev => ({ ...prev, validity_date: `${year}-${month}-${day}` }));
+                } else {
+                  setFormData(prev => ({ ...prev, validity_date: "" }));
+                }
+              }}
+              placeholder="Sélectionner une deadline"
+              error={errors.validity_date}
+              className={getFieldClassName("validity_date")}
+              size="sm"
             />
             {errors.validity_date && (
               <span className="text-sm text-red-600 dark:text-red-400">{errors.validity_date}</span>
@@ -1463,7 +1588,7 @@ export function OfferComposer({
   // =============================================================================
   return (
     <>
-      <Modal open={open} onClose={onClose} title={modalTitle} widthClass="max-w-5xl">
+      <DraggableModal open={open} onClose={onClose} title={modalTitle} widthClass="max-w-5xl">
         <Accordion items={accordionItems} defaultOpenId="general" className="space-y-4" />
 
         {/* Actions footer */}
@@ -1522,10 +1647,10 @@ export function OfferComposer({
             </Button>
           </div>
         </div>
-      </Modal>
+      </DraggableModal>
 
       {/* PDF Preview Modal */}
-      <Modal open={showPdfPreview} onClose={() => setShowPdfPreview(false)} title="Prévisualisation PDF" widthClass="max-w-6xl">
+      <DraggableModal open={showPdfPreview} onClose={() => setShowPdfPreview(false)} title="Prévisualisation PDF" widthClass="max-w-6xl">
         <div className="h-96">
           {pdfUrl ? (
             <iframe
@@ -1550,7 +1675,7 @@ export function OfferComposer({
             </Button>
           )}
         </div>
-      </Modal>
-11  q2q1111111111111111    </>
+      </DraggableModal>
+    </>
   );
 }

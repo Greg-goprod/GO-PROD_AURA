@@ -6,7 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import Modal from '../../../components/ui/Modal';
 import { PageHeader } from '../../../components/aura/PageHeader';
-import { ContractsKanban } from '../../../components/contracts/ContractsKanban';
+import { ContractsKanbanAura } from '../../../components/contracts/ContractsKanbanAura';
 import { ContractsListView } from '../../../components/contracts/ContractsListView';
 import { ContractForm } from '../../../components/contracts/ContractForm';
 import type { ContractFormData } from '../../../components/contracts/ContractForm';
@@ -293,7 +293,7 @@ export default function ContratsPage() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <ContractsKanban
+              <ContractsKanbanAura
                 contracts={filteredContracts}
                 onStatusChange={handleStatusChange}
                 onView={handleView}

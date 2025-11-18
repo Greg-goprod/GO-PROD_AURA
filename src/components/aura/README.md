@@ -7,6 +7,7 @@
 - [Vue d'ensemble](#vue-densemble)
 - [Composants disponibles](#composants-disponibles)
 - [Nouveau : Table Component](#nouveau--table-component)
+- [Nouveau : Système Kanban AURA](#nouveau--système-kanban-aura)
 - [Hooks utilitaires](#hooks-utilitaires)
 - [Standards de design](#standards-de-design)
 
@@ -293,6 +294,238 @@ Consultez `src/components/aura/Table.example.tsx` pour des exemples détaillés 
 - Table avec tri
 - Table avec photos et badges
 - Table avec actions
+
+---
+
+## Nouveau : Système Kanban AURA
+
+### 📊 KanbanBoard
+**Système Kanban unifié avec couleurs AURA officielles et drag & drop.**
+
+#### 🎨 Palette de Couleurs AURA pour Kanban
+
+Le système Kanban AURA utilise 6 couleurs officielles de la palette AURA :
+
+| Couleur | Hex | Usage Kanban | Contexte |
+|---------|-----|--------------|----------|
+| **Taupe gray** | `#919399` | Brouillon, à recevoir | États neutres, en attente |
+| **Cobalt blue** | `#1246A3` | En révision, en cours | États intermédiaires |
+| **Resolution Blue** | `#021F78` | Actions importantes | Signature interne, décisions |
+| **Eminence** | `#661B7D` | Prêt à envoyer, signé | **Couleur principale AURA** |
+| **Purpureus** | `#9E61A9` | Signature externe | Accents violets clairs |
+| **Light green** | `#90EE90` | Envoyé, finalisé | Succès, validation |
+
+#### Composants du système
+
+Le système Kanban AURA se compose de 3 composants réutilisables :
+
+1. **KanbanBoard** - Conteneur principal avec gestion du drag & drop
+2. **KanbanColumn** - Colonne avec header coloré et zone droppable
+3. **KanbanCard** - Carte draggable avec style uniforme
+
+#### Utilisation de base
+
+```tsx
+import { KanbanBoard } from '@/components/aura/KanbanBoard';
+import { Card } from '@/components/aura/Card';
+
+// 1. Définir les colonnes avec couleurs AURA
+const columns = [
+  { id: 'draft', title: 'Brouillon', color: 'taupe' },
+  { id: 'ready', title: 'Prêt à envoyer', color: 'eminence' },
+  { id: 'sent', title: 'Envoyé', color: 'lightgreen' },
+];
+
+// 2. Utiliser le composant
+<KanbanBoard
+  columns={columns}
+  items={offers}
+  getItemColumn={(offer) => offer.status}
+  onMove={(id, newStatus) => handleStatusChange(id, newStatus)}
+  renderCard={(offer) => (
+    <Card>
+      <h3>{offer.artist_name}</h3>
+      <p>{offer.stage_name}</p>
+    </Card>
+  )}
+  enableDragAndDrop={true}
+/>
+```
+
+#### Exemple complet : Kanban des Offres
+
+```tsx
+import { KanbanBoard, KanbanColumnConfig, AuraColor } from '@/components/aura/KanbanBoard';
+import { Card } from '@/components/aura/Card';
+import { Button } from '@/components/aura/Button';
+
+type OfferStatus = 'draft' | 'ready_to_send' | 'sent';
+
+interface Offer {
+  id: string;
+  status: OfferStatus;
+  artist_name: string;
+  stage_name: string;
+  amount: number;
+}
+
+const OffersKanban = ({ offers, onMove }: Props) => {
+  const columns: KanbanColumnConfig<OfferStatus>[] = [
+    { id: 'draft', title: 'Brouillon / À faire', color: 'taupe' },
+    { id: 'ready_to_send', title: 'Prêt à envoyer', color: 'eminence' },
+    { id: 'sent', title: 'Envoyé', color: 'lightgreen' },
+  ];
+
+  return (
+    <KanbanBoard
+      columns={columns}
+      items={offers}
+      getItemColumn={(offer) => offer.status}
+      onMove={onMove}
+      renderCard={(offer) => (
+        <Card className="p-3">
+          <div className="font-medium">{offer.artist_name}</div>
+          <div className="text-sm text-gray-600">{offer.stage_name}</div>
+          <div className="mt-2">
+            <Button size="sm">Modifier</Button>
+            <Button size="sm" variant="success">Envoyer</Button>
+          </div>
+        </Card>
+      )}
+      enableDragAndDrop={false} // Pas de drag & drop pour les offres
+    />
+  );
+};
+```
+
+#### Exemple complet : Kanban des Contrats avec Drag & Drop
+
+```tsx
+import { KanbanBoard, KanbanCard } from '@/components/aura/KanbanBoard';
+import { ContractCard } from '@/components/contracts/ContractCard';
+
+type ContractStatus = 
+  | 'to_receive' 
+  | 'review' 
+  | 'internal_sign' 
+  | 'internal_signed' 
+  | 'external_sign' 
+  | 'finalized';
+
+const ContractsKanban = ({ contracts, onStatusChange }: Props) => {
+  const columns = [
+    { id: 'to_receive', title: 'À recevoir', color: 'taupe' },
+    { id: 'review', title: 'En relecture', color: 'cobalt' },
+    { id: 'internal_sign', title: 'Signature interne', color: 'resolution' },
+    { id: 'internal_signed', title: 'Signé interne', color: 'eminence' },
+    { id: 'external_sign', title: 'Signature externe', color: 'purpureus' },
+    { id: 'finalized', title: 'Finalisé', color: 'lightgreen' },
+  ];
+
+  return (
+    <KanbanBoard
+      columns={columns}
+      items={contracts}
+      getItemColumn={(contract) => contract.status}
+      onMove={onStatusChange}
+      enableDragAndDrop={true} // Avec drag & drop
+      minHeight="500px"
+      renderCard={(contract) => (
+        <KanbanCard id={contract.id} enableDrag={true}>
+          <ContractCard
+            contract={contract}
+            onView={handleView}
+            onUpload={handleUpload}
+          />
+        </KanbanCard>
+      )}
+    />
+  );
+};
+```
+
+#### Props du KanbanBoard
+
+| Prop | Type | Défaut | Description |
+|------|------|--------|-------------|
+| `columns` | `KanbanColumnConfig[]` | - | **Requis**. Configuration des colonnes |
+| `items` | `T[]` | - | **Requis**. Liste des items à afficher |
+| `getItemColumn` | `(item: T) => string` | - | **Requis**. Fonction retournant la colonne d'un item |
+| `renderCard` | `(item: T) => ReactNode` | - | **Requis**. Fonction de rendu d'une carte |
+| `onMove` | `(id: string, newColumn: string) => void` | - | Callback lors du déplacement d'un item |
+| `enableDragAndDrop` | `boolean` | `true` | Active le drag & drop |
+| `minHeight` | `string` | `'200px'` | Hauteur minimale des colonnes |
+| `className` | `string` | `''` | Classes CSS additionnelles |
+
+#### KanbanColumnConfig
+
+```tsx
+interface KanbanColumnConfig<T extends string = string> {
+  id: T;                  // Identifiant unique de la colonne
+  title: string;          // Titre affiché dans le header
+  color: AuraColor;       // Couleur AURA (taupe, cobalt, resolution, eminence, purpureus, lightgreen)
+}
+```
+
+#### Couleurs AURA disponibles
+
+```tsx
+type AuraColor = 
+  | 'taupe'       // Taupe gray (#919399) - Neutre
+  | 'cobalt'      // Cobalt blue (#1246A3) - En cours
+  | 'resolution'  // Resolution Blue (#021F78) - Important
+  | 'eminence'    // Eminence (#661B7D) - Principal AURA
+  | 'purpureus'   // Purpureus (#9E61A9) - Accent violet
+  | 'lightgreen'; // Light green (#90EE90) - Succès
+```
+
+#### Exemples d'utilisation dans l'application
+
+**1. Module Offres (`/app/booking/offres`)**
+- 3 colonnes : Brouillon (taupe), Prêt (eminence), Envoyé (lightgreen)
+- Pas de drag & drop
+- Actions : Établir offre, Modifier, Envoyer, Valider
+
+**2. Module Contrats (`/app/administration/contrats`)**
+- 6 colonnes : workflow complet de signature
+- Drag & drop activé
+- Actions : Upload, Email, Signature
+
+#### Avantages du système Kanban AURA
+
+✅ **Cohérence visuelle** : Palette de couleurs AURA officielle  
+✅ **Réutilisable** : Fonctionne pour tous les workflows Kanban  
+✅ **TypeScript** : Typage complet avec génériques  
+✅ **Drag & Drop** : Support optionnel avec `@dnd-kit`  
+✅ **Responsive** : S'adapte à toutes les tailles d'écran  
+✅ **Accessible** : Bordures, compteurs et couleurs contrastées  
+
+#### Migration vers le système Kanban AURA
+
+**Avant** (Kanban custom)
+```tsx
+<div className="grid grid-cols-3 gap-4">
+  {columns.map(col => (
+    <div key={col.id} style={{ backgroundColor: col.color }}>
+      <h3>{col.title} ({col.items.length})</h3>
+      {col.items.map(item => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </div>
+  ))}
+</div>
+```
+
+**Après** (Kanban AURA)
+```tsx
+<KanbanBoard
+  columns={columns}
+  items={allItems}
+  getItemColumn={(item) => item.status}
+  onMove={handleMove}
+  renderCard={(item) => <ItemCard item={item} />}
+/>
+```
 
 ---
 

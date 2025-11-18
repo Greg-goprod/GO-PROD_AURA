@@ -9,7 +9,7 @@ import { useToast } from "@/components/aura/ToastProvider";
 import { ConfirmDeleteModal } from "@/components/ui/ConfirmDeleteModal";
 import { Settings, Plus, Calendar } from "lucide-react";
 
-import { KanbanBoard } from "@/features/booking/KanbanBoard";
+import { OffersKanban } from "@/features/booking/OffersKanban";
 import { OffersListView } from "@/features/booking/OffersListView";
 import { OfferComposer } from "@/features/booking/modals/OfferComposer";
 import { SendOfferModal } from "@/features/booking/modals/SendOfferModal";
@@ -641,7 +641,7 @@ ${data.sender.name}
               {loading ? (
                 <div className="text-gray-600 dark:text-gray-300">Chargement…</div>
               ) : (
-                <KanbanBoard
+                <OffersKanban
                   columns={kanbanColumns}
                   onMove={handleMove}
                   onQuickAction={handleQuickAction}
