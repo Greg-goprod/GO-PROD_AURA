@@ -250,7 +250,6 @@ export default function ContratsPage() {
       <PageHeader
         icon={FileText}
         title="CONTRATS"
-        subtitle={`${filteredContracts.length} contrat${filteredContracts.length > 1 ? 's' : ''}`}
         actions={
           <>
             <div className="relative">
