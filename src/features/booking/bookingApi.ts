@@ -114,7 +114,7 @@ export async function generateOfferPdfOnStatusChange(offerId: string) {
       .eq("event_stage_id", existing?.stage_id || "")
       .limit(1).maybeSingle();
     perfTime = perf.data?.performance_time || perfTime;
-    perfDate = perf.data?.event_days?.date || perfDate;
+    perfDate = (Array.isArray(perf.data?.event_days) && perf.data.event_days[0]?.date) || perfDate;
     duration = perf.data?.duration || duration;
   }
 

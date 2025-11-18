@@ -169,15 +169,15 @@ export function ContactDetailsModal({ contact, open, onClose }: ContactDetailsMo
             )}
           </div>
 
-          {/* Artistes associés */}
-          {contact.artists && contact.artists.length > 0 && (
+          {/* Artistes associés - TODO: Add artists to CRMContactWithRelations type */}
+          {/* {contact.artists && contact.artists.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Users className="w-4 h-4 text-violet-500" />
                 Artistes associés
               </h3>
               <div className="flex flex-wrap gap-2">
-                {contact.artists.map((artist) => (
+                {contact.artists.map((artist: any) => (
                   <span
                     key={artist.id}
                     className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-violet-100 to-purple-100 text-violet-900 dark:from-violet-900 dark:to-purple-900 dark:text-violet-100 border border-violet-200 dark:border-violet-800"
@@ -187,7 +187,7 @@ export function ContactDetailsModal({ contact, open, onClose }: ContactDetailsMo
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Notes internes */}
           {contact.notes_internal && (
@@ -446,12 +446,12 @@ export function ContactDetailsModal({ contact, open, onClose }: ContactDetailsMo
             </div>
           )}
 
-          {/* Artistes associés */}
-          {contact.artists && contact.artists.length > 0 && (
+          {/* Artistes associés - TODO: Add artists to CRMContactWithRelations type */}
+          {/* {contact.artists && contact.artists.length > 0 && (
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase border-b border-gray-300 pb-1">Artistes associés</h2>
               <div className="flex flex-wrap gap-2 ml-4">
-                {contact.artists.map((artist) => (
+                {contact.artists.map((artist: any) => (
                   <span key={artist.id} className="px-3 py-1 bg-violet-50 text-violet-900 rounded border border-violet-200 font-medium">
                     {artist.artist_name}
                     {artist.artist_real_name && artist.artist_real_name !== artist.artist_name && (
@@ -461,7 +461,7 @@ export function ContactDetailsModal({ contact, open, onClose }: ContactDetailsMo
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Notes internes */}
           {contact.notes_internal && (
