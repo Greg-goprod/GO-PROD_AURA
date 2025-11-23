@@ -129,3 +129,6 @@ console.log('✓ Les montants nets obtenus correspondent aux montants désirés'
 console.log('✓ Le système gère correctement les seuils du barème');
 console.log('═══════════════════════════════════════════════════════════════\n');
 
+
+
+

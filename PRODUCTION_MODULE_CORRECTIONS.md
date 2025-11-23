@@ -568,3 +568,6 @@ $$ LANGUAGE plpgsql;
 **Par** : Analyse automatique IA
 
 
+
+
+

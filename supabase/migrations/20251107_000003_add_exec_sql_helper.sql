@@ -46,3 +46,6 @@ REVOKE ALL ON FUNCTION public.exec_sql(TEXT) FROM authenticated;
 
 
 
+
+
+

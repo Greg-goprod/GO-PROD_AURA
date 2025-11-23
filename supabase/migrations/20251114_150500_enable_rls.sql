@@ -310,3 +310,6 @@ COMMENT ON FUNCTION auth_company_id IS
 -- 4. Tester tous les CRUDs avec RLS actif
 
 
+
+
+
