@@ -11,16 +11,22 @@ import { ToastProvider } from './components/aura/ToastProvider'
 // Initialiser le thème avant le rendu
 setTheme(getTheme())
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <I18nProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </ToastProvider>
-      </I18nProvider>
-    </ErrorBoundary>
-  </React.StrictMode>,
-)
+const rootElement = document.getElementById('root')
+
+if (!rootElement) {
+  console.error('❌ Root element not found!')
+} else {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <I18nProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </ToastProvider>
+        </I18nProvider>
+      </ErrorBoundary>
+    </React.StrictMode>,
+  )
+}
