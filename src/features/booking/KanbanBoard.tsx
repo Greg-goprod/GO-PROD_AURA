@@ -1,4 +1,4 @@
-import type { Offer, OfferStatus } from "./bookingTypes";
+﻿import type { Offer, OfferStatus } from "./bookingTypes";
 import { Card } from "@/components/aura/Card";
 import { Badge } from "@/components/aura/Badge";
 import { Button } from "@/components/aura/Button";
@@ -43,9 +43,9 @@ export function KanbanBoard({
   // ============================================
   // PALETTE AURA OFFICIELLE - Couleurs Kanban Offres
   // ============================================
-  // draft_and_todo → Taupe gray (#919399)
-  // ready_to_send → Eminence (#661B7D) - Violet AURA principal
-  // sent → Light green (#90EE90)
+  // draft_and_todo â†’ Taupe gray (#919399)
+  // ready_to_send â†’ Eminence (#661B7D) - Violet AURA principal
+  // sent â†’ Light green (#90EE90)
 
   const getColumnStyle = (id: ColumnId) => {
     const baseStyle = "border-2 border-dashed rounded-lg p-3 min-h-[200px]";
@@ -68,7 +68,7 @@ export function KanbanBoard({
   const getHeaderStyle = (id: ColumnId) => {
     const baseStyle = "flex items-center justify-between p-3 rounded-lg border-2";
     
-    // En-têtes avec les couleurs AURA officielles
+    // En-tÃªtes avec les couleurs AURA officielles
     if (id === "draft_and_todo") {
       return `${baseStyle} bg-[#919399] border-[#919399] text-white`;
     }
@@ -98,16 +98,16 @@ export function KanbanBoard({
             </div>
           </div>
           
-          {/* Zone de contenu avec bordure plus marquée */}
+          {/* Zone de contenu avec bordure plus marquÃ©e */}
           <div className={`space-y-3 ${getColumnStyle(col.id)}`}>
             {col.offers.map((item: any) => {
               const isPerf = item.type === "performance";
               return (
                 <Card key={item.id} className="p-3 shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
                   <div className="text-sm text-gray-900 dark:text-gray-100">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{item.artist_name || "—"}</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{item.artist_name || "â€”"}</div>
                     <div className="text-gray-600 dark:text-gray-400 text-xs mt-1">
-                      {item.stage_name} {item.performance_time ? `— ${String(item.performance_time).slice(0, 5)}` : ""}
+                      {item.stage_name} {item.performance_time ? `â€” ${String(item.performance_time).slice(0, 5)}` : ""}
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-3">
@@ -116,21 +116,21 @@ export function KanbanBoard({
                         <Button 
                           size="sm" 
                           onClick={() => {
-                            console.log("🎯 Click 'Établir offre' - item:", item);
+                            console.log("ðŸŽ¯ Click 'Ã‰tablir offre' - item:", item);
                             onQuickAction("create_offer", item);
                           }} 
                           className="text-xs"
                         >
-                          Établir offre
+                          Ã‰tablir offre
                         </Button>
-                        {item.status === "offre_rejetee" && <Badge color="red">Rejeté (perf)</Badge>}
+                        {item.status === "offre_rejetee" && <Badge color="red">RejetÃ© (perf)</Badge>}
                       </>
                     ) : (
                       <>
                         <Button size="sm" variant="secondary" onClick={() => onModifyOffer(item)} className="text-xs">Modifier</Button>
                         <Button size="sm" onClick={() => onSendOffer(item)} className="text-xs">Envoyer</Button>
                         {onExportContract && (
-                          <Button size="sm" variant="ghost" onClick={() => onExportContract(item)} className="text-xs">📄 Contrat</Button>
+                          <Button size="sm" variant="ghost" onClick={() => onExportContract(item)} className="text-xs">ðŸ“„ Contrat</Button>
                         )}
                         <Button size="sm" variant="success" onClick={() => onValidateOffer(item)} className="text-xs">Valider</Button>
                         <Button size="sm" variant="danger" onClick={() => onRejectOffer(item)} className="text-xs">Rejeter</Button>

@@ -1,37 +1,37 @@
-import React from "react";
+﻿import React from "react";
 import type { LucideIcon } from "lucide-react";
 
 export interface PageHeaderProps {
   /** Titre principal de la page */
   title: string;
   
-  /** Icône de la page (optionnel) */
+  /** IcÃ´ne de la page (optionnel) */
   icon?: LucideIcon;
   
   /** Sous-titre ou description (optionnel) */
   subtitle?: React.ReactNode;
   
-  /** Actions à afficher à droite (boutons, etc.) */
+  /** Actions Ã  afficher Ã  droite (boutons, etc.) */
   actions?: React.ReactNode;
   
-  /** Afficher un badge avec le nom de l'événement actuel */
+  /** Afficher un badge avec le nom de l'Ã©vÃ©nement actuel */
   showEventBadge?: boolean;
   
-  /** Classe CSS personnalisée pour le conteneur */
+  /** Classe CSS personnalisÃ©e pour le conteneur */
   className?: string;
 }
 
 /**
- * PageHeader - Composant AURA standardisé pour les headers de page
+ * PageHeader - Composant AURA standardisÃ© pour les headers de page
  * 
  * @example
  * ```tsx
  * <PageHeader
  *   title="Timeline Booking"
- *   subtitle="Mode production • 15 performances"
+ *   subtitle="Mode production â€¢ 15 performances"
  *   actions={
  *     <div className="flex gap-2">
- *       <Button onClick={handleDemo}>Mode démo</Button>
+ *       <Button onClick={handleDemo}>Mode dÃ©mo</Button>
  *       <Button onClick={handleAdd}>+ Performance</Button>
  *     </div>
  *   }
@@ -72,4 +72,3 @@ export function PageHeader({
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import { User, ArrowLeft, Music, TrendingUp, Calendar, Mail, Phone, MapPin, Briefcase, Globe } from "lucide-react";
+﻿import { User, ArrowLeft, Music, TrendingUp, Calendar, Mail, Phone, MapPin, Briefcase, Globe } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
@@ -64,7 +64,7 @@ export default function ArtistDetailPage() {
     try {
       setLoading(true);
       
-      // Récupérer le company_id
+      // RÃ©cupÃ©rer le company_id
       const cid = await getCurrentCompanyId(supabase);
       setCompanyId(cid);
       
@@ -76,7 +76,7 @@ export default function ArtistDetailPage() {
 
       if (err) throw err;
       
-      // Normaliser les données si ce sont des tableaux
+      // Normaliser les donnÃ©es si ce sont des tableaux
       if (data) {
         // Normaliser spotify_data
         if (Array.isArray(data.spotify_data)) {
@@ -102,7 +102,7 @@ export default function ArtistDetailPage() {
     try {
       const cid = await getCurrentCompanyId(supabase);
       
-      // Récupérer les liens artiste-contact avec les contacts
+      // RÃ©cupÃ©rer les liens artiste-contact avec les contacts
       const { data: linksData, error: err } = await supabase
         .from("crm_artist_contact_links")
         .select(`
@@ -139,7 +139,7 @@ export default function ArtistDetailPage() {
         return;
       }
 
-      // Récupérer les rôles pour tous les contacts
+      // RÃ©cupÃ©rer les rÃ´les pour tous les contacts
       const contactIds = linksData.map((item: any) => item.crm_contacts?.id).filter((id: any) => id != null);
       
       let rolesMap: { [key: string]: any[] } = {};
@@ -165,7 +165,7 @@ export default function ArtistDetailPage() {
         }
       }
 
-      // Transformer les données
+      // Transformer les donnÃ©es
       const artistContacts: ArtistContact[] = linksData.map((item: any) => {
         return {
           ...item.crm_contacts,
@@ -188,7 +188,7 @@ export default function ArtistDetailPage() {
 
       // Trier pour mettre les booking agents en premier
       artistContacts.sort((a, b) => {
-        // Vérifier si le contact a le rôle "Booking Agent" (insensible à la casse)
+        // VÃ©rifier si le contact a le rÃ´le "Booking Agent" (insensible Ã  la casse)
         const aIsBookingAgent = a.roles?.some(role => 
           role.label.toLowerCase().includes('booking') || role.label.toLowerCase().includes('agent')
         );
@@ -232,10 +232,10 @@ export default function ArtistDetailPage() {
             Erreur de chargement
           </h3>
           <p className="text-sm text-gray-400 mb-4">
-            {error || "Artiste non trouvé"}
+            {error || "Artiste non trouvÃ©"}
           </p>
           <button onClick={() => navigate('/app/artistes')} className="btn btn-secondary">
-            <ArrowLeft size={16} /> Retour à la liste
+            <ArrowLeft size={16} /> Retour Ã  la liste
           </button>
         </div>
       </div>
@@ -290,7 +290,7 @@ export default function ArtistDetailPage() {
               </h2>
               <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
                 <Calendar size={14} />
-                Ajouté le {new Date(artist.created_at).toLocaleDateString('fr-FR')}
+                AjoutÃ© le {new Date(artist.created_at).toLocaleDateString('fr-FR')}
               </div>
             </div>
           </div>
@@ -334,7 +334,7 @@ export default function ArtistDetailPage() {
                         <td className="py-3 pr-4">
                           <div className="flex flex-wrap items-center gap-1">
                             {contact.link.is_main_agent && (
-                              <span className="text-violet-400">⭐</span>
+                              <span className="text-violet-400">â­</span>
                             )}
                             {contact.roles && contact.roles.length > 0 ? (
                               contact.roles.map((role) => (
@@ -347,20 +347,20 @@ export default function ArtistDetailPage() {
                             )}
                             {contact.link.territory && (
                               <span className="text-xs text-gray-500 dark:text-gray-400">
-                                • {contact.link.territory}
+                                â€¢ {contact.link.territory}
                               </span>
                             )}
                           </div>
                         </td>
 
-                        {/* 2. Nom Prénom */}
+                        {/* 2. Nom PrÃ©nom */}
                         <td className="py-3 pr-4">
                           <div className="text-sm text-gray-900 dark:text-white font-medium">
                             {contact.display_name || `${contact.first_name} ${contact.last_name}`}
                           </div>
                         </td>
 
-                        {/* 3. Téléphone (WhatsApp) */}
+                        {/* 3. TÃ©lÃ©phone (WhatsApp) */}
                         <td className="py-3 pr-4">
                           {contact.phone_mobile ? (
                             <a 
@@ -397,7 +397,7 @@ export default function ArtistDetailPage() {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-gray-400 italic">Aucun contact associé</p>
+              <p className="text-sm text-gray-400 italic">Aucun contact associÃ©</p>
             )}
           </div>
           {/* Spotify Stats */}
@@ -417,7 +417,7 @@ export default function ArtistDetailPage() {
                 <div className="card-surface p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp size={16} className="text-violet-400" />
-                    <span className="text-xs text-gray-400 uppercase">Popularité</span>
+                    <span className="text-xs text-gray-400 uppercase">PopularitÃ©</span>
                   </div>
                   <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {artist.spotify_data.popularity || 'N/A'}
@@ -439,15 +439,15 @@ export default function ArtistDetailPage() {
             </div>
           )}
 
-          {/* Graphique d'évolution Spotify */}
+          {/* Graphique d'Ã©volution Spotify */}
           <div className="card-surface p-6 rounded-xl">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Évolution Spotify</h3>
+            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Ã‰volution Spotify</h3>
             <ArtistStatsChart artistId={artist.id} artistName={artist.name} />
           </div>
 
           {/* Social Media Links */}
           <div className="card-surface p-6 rounded-xl">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Réseaux sociaux</h3>
+            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">RÃ©seaux sociaux</h3>
             <div className="flex flex-wrap gap-4">
               {/* Spotify */}
               {artist.spotify_data?.external_url ? (
@@ -716,10 +716,10 @@ export default function ArtistDetailPage() {
 
           {/* Additional Info Placeholder */}
           <div className="card-surface p-6 rounded-xl">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Informations supplémentaires</h3>
+            <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Informations supplÃ©mentaires</h3>
             <p className="text-sm text-gray-400 italic">
               {/* TODO: Ajouter biographie, historique des bookings, documents, etc. */}
-              Section à implémenter : biographie, historique des bookings, documents contractuels...
+              Section Ã  implÃ©menter : biographie, historique des bookings, documents contractuels...
             </p>
           </div>
         </div>
@@ -727,4 +727,3 @@ export default function ArtistDetailPage() {
     </div>
   );
 }
-

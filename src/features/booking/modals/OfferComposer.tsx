@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import { FileText, Eye, Send, DollarSign, User, Plus } from "lucide-react";
 import { DraggableModal } from "../../../components/aura/DraggableModal";
@@ -132,7 +132,7 @@ export function OfferComposer({
   const { success: toastSuccess, error: toastError } = useToast();
   
   // =============================================================================
-  // ÉTATS - Données chargées
+  // Ã‰TATS - DonnÃ©es chargÃ©es
   // =============================================================================
   const [artists, setArtists] = useState<Artist[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -141,7 +141,7 @@ export function OfferComposer({
   const [exclusivityClauses, setExclusivityClauses] = useState<ExclusivityClause[]>([]);
   
   // =============================================================================
-  // ÉTATS - Form data principale
+  // Ã‰TATS - Form data principale
   // =============================================================================
   const [formData, setFormData] = useState({
     artist_id: "",
@@ -162,7 +162,7 @@ export function OfferComposer({
   });
   
   // =============================================================================
-  // ÉTATS - Frais additionnels (6 types × 2 champs = 12 états)
+  // Ã‰TATS - Frais additionnels (6 types Ã— 2 champs = 12 Ã©tats)
   // =============================================================================
   const [prodFeeAmount, setProdFeeAmount] = useState<number | undefined>();
   const [prodFeeCurrency, setProdFeeCurrency] = useState<CurrencyCode>("EUR");
@@ -183,31 +183,31 @@ export function OfferComposer({
   const [technicalFeeCurrency, setTechnicalFeeCurrency] = useState<CurrencyCode>("EUR");
   
   // =============================================================================
-  // ÉTATS - Extras et Clauses
+  // Ã‰TATS - Extras et Clauses
   // =============================================================================
   const [selectedExtras, setSelectedExtras] = useState<Record<string, "festival" | "artist">>({});
   const [exclusivityClausesSelected, setExclusivityClausesSelected] = useState<string[]>([]);
   
   // =============================================================================
-  // ÉTATS - Gestion heure TBC
+  // Ã‰TATS - Gestion heure TBC
   // =============================================================================
   const [savedPerformanceTime, setSavedPerformanceTime] = useState<string>("20:00");
   const [isTBC, setIsTBC] = useState(false);
   
   // =============================================================================
-  // ÉTATS - Validation & PDF
+  // Ã‰TATS - Validation & PDF
   // =============================================================================
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   // =============================================================================
-  // ÉTATS - Données Budget Artistique
+  // Ã‰TATS - DonnÃ©es Budget Artistique
   // =============================================================================
   const [fieldsFromBudget, setFieldsFromBudget] = useState<Set<string>>(new Set());
   
   // =============================================================================
-  // CHARGEMENT INITIAL DES DONNÉES
+  // CHARGEMENT INITIAL DES DONNÃ‰ES
   // =============================================================================
   useEffect(() => {
     if (!open) return;
@@ -215,7 +215,7 @@ export function OfferComposer({
     const loadData = async () => {
       setLoading(true);
       try {
-        // Chargement parallèle de toutes les données
+        // Chargement parallÃ¨le de toutes les donnÃ©es
         const [
           artistsData,
           stagesData,
@@ -237,7 +237,7 @@ export function OfferComposer({
         setExclusivityClauses(clausesData);
         
       } catch (error: any) {
-        console.error("Erreur chargement données:", error);
+        console.error("Erreur chargement donnÃ©es:", error);
         toastError(error?.message || "Erreur de chargement");
       } finally {
         setLoading(false);
@@ -254,7 +254,7 @@ export function OfferComposer({
     try {
       const BOOKING_AGENT_ROLE_ID = "bcd6fcc3-2327-4e25-ae87-25d31605816d";
       
-      // Récupérer uniquement les contacts avec rôle "Booking Agent"
+      // RÃ©cupÃ©rer uniquement les contacts avec rÃ´le "Booking Agent"
       const { data, error } = await supabase
         .from("crm_contacts")
         .select(`
@@ -269,7 +269,7 @@ export function OfferComposer({
       
       if (error) throw error;
       
-      console.log(`[OK] ${data?.length || 0} Booking Agent(s) chargé(s)`);
+      console.log(`[OK] ${data?.length || 0} Booking Agent(s) chargÃ©(s)`);
       return data || [];
     } catch (error) {
       console.error("Erreur chargement booking agents:", error);
@@ -292,7 +292,7 @@ export function OfferComposer({
       if (error) throw error;
       
       if (data?.contact_id) {
-        console.log(`[OK] Booking agent principal trouvé pour artiste: ${data.contact_id}`);
+        console.log(`[OK] Booking agent principal trouvÃ© pour artiste: ${data.contact_id}`);
         return data.contact_id;
       }
       
@@ -304,11 +304,11 @@ export function OfferComposer({
   }
   
   // =============================================================================
-  // CHARGEMENT DONNÉES FINANCIÈRES DEPUIS BUDGET ARTISTIQUE
+  // CHARGEMENT DONNÃ‰ES FINANCIÃˆRES DEPUIS BUDGET ARTISTIQUE
   // =============================================================================
   const loadBudgetData = useCallback(async (artistId: string, eventId: string) => {
     try {
-      console.log(`[BUDGET] Chargement données pour artiste ${artistId}, event ${eventId}`);
+      console.log(`[BUDGET] Chargement donnÃ©es pour artiste ${artistId}, event ${eventId}`);
       
       const { data, error } = await supabase
         .from("artist_performances")
@@ -320,11 +320,11 @@ export function OfferComposer({
       if (error) throw error;
       
       if (data && data.fee_amount !== null) {
-        console.log(`[BUDGET] Données trouvées:`, data);
+        console.log(`[BUDGET] DonnÃ©es trouvÃ©es:`, data);
         
         const newFieldsFromBudget = new Set<string>();
         
-        // Pré-remplir les champs financiers
+        // PrÃ©-remplir les champs financiers
         if (data.fee_amount !== null) {
           if (data.fee_is_net) {
             setFormData(prev => ({ ...prev, amount_net: data.fee_amount, amount_is_net: true, amount_gross: null }));
@@ -346,9 +346,9 @@ export function OfferComposer({
         
         setFieldsFromBudget(newFieldsFromBudget);
         
-        toastSuccess("💰 Données financières chargées depuis le Budget Artistique");
+        toastSuccess("ðŸ’° DonnÃ©es financiÃ¨res chargÃ©es depuis le Budget Artistique");
       } else {
-        console.log("[BUDGET] Aucune donnée financière trouvée");
+        console.log("[BUDGET] Aucune donnÃ©e financiÃ¨re trouvÃ©e");
         setFieldsFromBudget(new Set());
       }
     } catch (error) {
@@ -396,13 +396,13 @@ export function OfferComposer({
   }
   
   // =============================================================================
-  // PRÉ-REMPLISSAGE DU FORMULAIRE (Édition ou Création depuis performance)
+  // PRÃ‰-REMPLISSAGE DU FORMULAIRE (Ã‰dition ou CrÃ©ation depuis performance)
   // =============================================================================
   useEffect(() => {
     if (!open) return;
     
     if (editingOffer) {
-      // MODE ÉDITION
+      // MODE Ã‰DITION
       setFormData({
         artist_id: editingOffer.artist_id,
         stage_id: editingOffer.stage_id,
@@ -435,7 +435,7 @@ export function OfferComposer({
       setTechnicalFeeAmount(editingOffer.technical_fee_amount || undefined);
       setTechnicalFeeCurrency((editingOffer.technical_fee_currency || "EUR") as CurrencyCode);
       
-      // Clauses d'exclusivité
+      // Clauses d'exclusivitÃ©
       if (editingOffer.terms_json && editingOffer.terms_json.selectedClauseIds) {
         setExclusivityClausesSelected(editingOffer.terms_json.selectedClauseIds);
       }
@@ -443,9 +443,9 @@ export function OfferComposer({
       // TODO: Charger les extras depuis offer_extras
       
     } else if (prefilledData) {
-      // MODE CRÉATION DEPUIS PERFORMANCE
+      // MODE CRÃ‰ATION DEPUIS PERFORMANCE
       
-      // Charger le booking agent principal de l'artiste (si artiste pré-rempli)
+      // Charger le booking agent principal de l'artiste (si artiste prÃ©-rempli)
       const loadMainAgent = async () => {
         if (prefilledData.artist_id) {
           const mainAgentId = await loadArtistMainBookingAgent(prefilledData.artist_id);
@@ -476,7 +476,7 @@ export function OfferComposer({
         validity_date: "",
       });
       
-      // Charger le booking agent après setFormData
+      // Charger le booking agent aprÃ¨s setFormData
       loadMainAgent();
     }
   }, [open, editingOffer, prefilledData]);
@@ -490,7 +490,7 @@ export function OfferComposer({
     const loadAgentForArtist = async () => {
       const mainAgentId = await loadArtistMainBookingAgent(formData.artist_id);
       if (mainAgentId) {
-        console.log(`[AUTO] Booking agent auto-sélectionné: ${mainAgentId}`);
+        console.log(`[AUTO] Booking agent auto-sÃ©lectionnÃ©: ${mainAgentId}`);
         setFormData(prev => ({
           ...prev,
           agency_contact_id: mainAgentId
@@ -498,7 +498,7 @@ export function OfferComposer({
       }
     };
     
-    // Charger les données financières du Budget Artistique
+    // Charger les donnÃ©es financiÃ¨res du Budget Artistique
     const loadBudget = async () => {
       await loadBudgetData(formData.artist_id, eventId);
     };
@@ -523,7 +523,7 @@ export function OfferComposer({
   // =============================================================================
   const handleToggleTBC = () => {
     if (isTBC) {
-      // Restaurer l'heure sauvegardée
+      // Restaurer l'heure sauvegardÃ©e
       setFormData(prev => ({ ...prev, performance_time: savedPerformanceTime }));
       setIsTBC(false);
     } else {
@@ -550,7 +550,7 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // GESTION CLAUSES D'EXCLUSIVITÉ
+  // GESTION CLAUSES D'EXCLUSIVITÃ‰
   // =============================================================================
   const handleExclusivityClauseToggle = (clauseId: string, checked: boolean) => {
     setExclusivityClausesSelected(prev =>
@@ -582,8 +582,8 @@ export function OfferComposer({
     // 1. Artiste
     if (!formData.artist_id) newErrors.artist_id = "Artiste requis";
     
-    // 2. Scène
-    if (!formData.stage_id) newErrors.stage_id = "Scène requise";
+    // 2. ScÃ¨ne
+    if (!formData.stage_id) newErrors.stage_id = "ScÃ¨ne requise";
     
     // 3. Date
     if (!formData.date_time) newErrors.date_time = "Date requise";
@@ -591,19 +591,19 @@ export function OfferComposer({
     // 4. Heure
     if (!formData.performance_time) newErrors.performance_time = "Heure requise";
     
-    // 5. Durée
-    if (!formData.duration || formData.duration <= 0) newErrors.duration = "Durée requise";
+    // 5. DurÃ©e
+    if (!formData.duration || formData.duration <= 0) newErrors.duration = "DurÃ©e requise";
     
-    // 6. Date de validité
-    if (!formData.validity_date) newErrors.validity_date = "Date de validité requise";
+    // 6. Date de validitÃ©
+    if (!formData.validity_date) newErrors.validity_date = "Date de validitÃ© requise";
     
-    // 7. Au moins un montant renseigné
+    // 7. Au moins un montant renseignÃ©
     const hasAmount = 
       (formData.amount_is_net && formData.amount_net) || 
       (formData.amount_gross_is_subject_to_withholding && formData.amount_gross);
     if (!hasAmount) newErrors.amount_display = "Montant requis";
     
-    // 8. Au moins un type de montant sélectionné
+    // 8. Au moins un type de montant sÃ©lectionnÃ©
     if (!formData.amount_is_net && !formData.amount_gross_is_subject_to_withholding) {
       newErrors.amount_type = "Type de montant requis (Net OU Brut)";
     }
@@ -616,7 +616,7 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // HELPER : Classe CSS pour champs avec erreur OU pré-remplis depuis budget
+  // HELPER : Classe CSS pour champs avec erreur OU prÃ©-remplis depuis budget
   // =============================================================================
   const getFieldClassName = (fieldName: string, baseClassName: string = ""): string => {
     const errorClass = errors[fieldName] ? "border-red-500 bg-red-50 dark:bg-red-900/10" : "";
@@ -651,7 +651,7 @@ export function OfferComposer({
       // Calcul montant display
       const amountDisplay = formData.amount_is_net ? formData.amount_net : formData.amount_gross;
       
-      // Récupérer noms pour cache
+      // RÃ©cupÃ©rer noms pour cache
       const artistName = artists.find(a => a.id === formData.artist_id)?.name || "";
       const stageName = stages.find(s => s.id === formData.stage_id)?.name || "";
       
@@ -693,7 +693,7 @@ export function OfferComposer({
         technical_fee_amount: technicalFeeAmount || null,
         technical_fee_currency: technicalFeeAmount ? technicalFeeCurrency : null,
         
-        // Clauses d'exclusivité
+        // Clauses d'exclusivitÃ©
         terms_json: {
           selectedClauseIds: exclusivityClausesSelected,
         },
@@ -701,18 +701,18 @@ export function OfferComposer({
       
       let offerId: string;
       
-      // DÉTERMINER LE MODE (CRITIQUE)
+      // DÃ‰TERMINER LE MODE (CRITIQUE)
       const isModification = prefilledData?.isModification === true;
       
       if (editingOffer) {
-        // MODE ÉDITION DIRECTE (modifie l'offre existante, même ID)
+        // MODE Ã‰DITION DIRECTE (modifie l'offre existante, mÃªme ID)
         await updateOffer(editingOffer.id, payload);
         offerId = editingOffer.id;
-        console.log("✏️ Offre éditée:", offerId);
+        console.log("âœï¸ Offre Ã©ditÃ©e:", offerId);
         
       } else if (isModification && prefilledData?.originalOfferId) {
-        // MODE MODIFICATION AVEC VERSIONING (crée nouvelle version)
-        console.log("🔄 Création nouvelle version");
+        // MODE MODIFICATION AVEC VERSIONING (crÃ©e nouvelle version)
+        console.log("ðŸ”„ CrÃ©ation nouvelle version");
         
         // Appeler la fonction RPC create_offer_version
         const { data, error } = await supabase.rpc("create_offer_version", {
@@ -725,40 +725,40 @@ export function OfferComposer({
         // La fonction retourne un tableau avec {id, version}
         if (data && data.length > 0) {
           offerId = data[0].id;
-          console.log(`[OK] Version ${data[0].version} créée: ${offerId}`);
+          console.log(`[OK] Version ${data[0].version} crÃ©Ã©e: ${offerId}`);
         } else {
-          throw new Error("Aucune donnée retournée par create_offer_version");
+          throw new Error("Aucune donnÃ©e retournÃ©e par create_offer_version");
         }
         
       } else {
-        // MODE CRÉATION NORMALE (nouvelle offre v1)
+        // MODE CRÃ‰ATION NORMALE (nouvelle offre v1)
         const newOffer = await createOffer(payload);
         offerId = newOffer.id;
-        console.log(`[OK] Nouvelle offre créée: ${offerId} (v1)`);
+        console.log(`[OK] Nouvelle offre crÃ©Ã©e: ${offerId} (v1)`);
       }
       
       // Sauvegarder les extras
       await saveOfferExtras(offerId, selectedExtras);
       
-      // Mettre à jour les données financières dans artist_performances
+      // Mettre Ã  jour les donnÃ©es financiÃ¨res dans artist_performances
       await updateArtistPerformanceFinancials();
       
-      // Mise à jour statut si ready_to_send
+      // Mise Ã  jour statut si ready_to_send
       if (status === "ready_to_send") {
         await updateOffer(offerId, {
           ready_to_send_at: new Date().toISOString(),
         });
         
-        // Déclencher l'événement de changement de statut
+        // DÃ©clencher l'Ã©vÃ©nement de changement de statut
         window.dispatchEvent(new CustomEvent("offer-status-changed"));
       }
       
-      toastSuccess(editingOffer ? "Offre modifiée" : "Offre créée");
+      toastSuccess(editingOffer ? "Offre modifiÃ©e" : "Offre crÃ©Ã©e");
       onSuccess();
       onClose();
       
     } catch (error: any) {
-      console.error("❌ Erreur sauvegarde:", error);
+      console.error("âŒ Erreur sauvegarde:", error);
       toastError(error?.message || "Erreur de sauvegarde");
     } finally {
       setSaving(false);
@@ -766,16 +766,16 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // MISE À JOUR DES DONNÉES FINANCIÈRES DANS ARTIST_PERFORMANCES
+  // MISE Ã€ JOUR DES DONNÃ‰ES FINANCIÃˆRES DANS ARTIST_PERFORMANCES
   // =============================================================================
   async function updateArtistPerformanceFinancials(): Promise<void> {
     try {
-      // Si l'utilisateur a modifié les données financières, mettre à jour artist_performances
+      // Si l'utilisateur a modifiÃ© les donnÃ©es financiÃ¨res, mettre Ã  jour artist_performances
       const feeAmount = formData.amount_is_net ? formData.amount_net : formData.amount_gross;
       
       if (!feeAmount || !formData.artist_id) return;
       
-      console.log("[BUDGET] Mise à jour des données financières dans artist_performances");
+      console.log("[BUDGET] Mise Ã  jour des donnÃ©es financiÃ¨res dans artist_performances");
       
       // Chercher la performance
       const { data: existingPerf } = await supabase
@@ -793,21 +793,21 @@ export function OfferComposer({
       };
       
       if (existingPerf) {
-        // Mettre à jour
+        // Mettre Ã  jour
         const { error } = await supabase
           .from("artist_performances")
           .update(updateData)
           .eq("id", existingPerf.id);
         
         if (error) throw error;
-        console.log("[BUDGET] Données financières mises à jour");
+        console.log("[BUDGET] DonnÃ©es financiÃ¨res mises Ã  jour");
       } else {
-        // Créer une nouvelle entrée si nécessaire (optionnel)
-        console.log("[BUDGET] Aucune performance existante, données non sauvegardées");
+        // CrÃ©er une nouvelle entrÃ©e si nÃ©cessaire (optionnel)
+        console.log("[BUDGET] Aucune performance existante, donnÃ©es non sauvegardÃ©es");
       }
     } catch (error) {
-      console.error("[BUDGET] Erreur mise à jour artist_performances:", error);
-      // Ne pas bloquer la sauvegarde de l'offre si cette mise à jour échoue
+      console.error("[BUDGET] Erreur mise Ã  jour artist_performances:", error);
+      // Ne pas bloquer la sauvegarde de l'offre si cette mise Ã  jour Ã©choue
     }
   }
   
@@ -825,7 +825,7 @@ export function OfferComposer({
         .delete()
         .eq("offer_id", offerId);
 
-      // 2. Préparer insertions
+      // 2. PrÃ©parer insertions
       const extrasToInsert = Object.entries(extras).map(([extraId, chargedTo]) => ({
         id: crypto.randomUUID(),
         offer_id: offerId,
@@ -834,14 +834,14 @@ export function OfferComposer({
         company_id: companyId,
       }));
 
-      // 3. Insérer nouveaux extras
+      // 3. InsÃ©rer nouveaux extras
       if (extrasToInsert.length > 0) {
         const { error } = await supabase
           .from("offer_extras")
           .insert(extrasToInsert);
         
         if (error) throw error;
-        console.log(`[OK] ${extrasToInsert.length} extras sauvegardés`);
+        console.log(`[OK] ${extrasToInsert.length} extras sauvegardÃ©s`);
       }
     } catch (error) {
       console.error("[ERROR] Erreur sauvegarde extras:", error);
@@ -850,35 +850,35 @@ export function OfferComposer({
   }
   
   // =============================================================================
-  // GÉNÉRATION DU PDF (À IMPLÉMENTER)
+  // GÃ‰NÃ‰RATION DU PDF (Ã€ IMPLÃ‰MENTER)
   // =============================================================================
   const handleGeneratePdf = async () => {
     if (!validateForm()) {
-      toastError("Veuillez remplir tous les champs obligatoires avant de générer le PDF");
+      toastError("Veuillez remplir tous les champs obligatoires avant de gÃ©nÃ©rer le PDF");
       return;
     }
     
     setGeneratingPdf(true);
     try {
-      // TODO: Implémenter la génération PDF
-      toastSuccess("Génération PDF - À implémenter");
+      // TODO: ImplÃ©menter la gÃ©nÃ©ration PDF
+      toastSuccess("GÃ©nÃ©ration PDF - Ã€ implÃ©menter");
     } catch (error: any) {
-      console.error("Erreur génération PDF:", error);
-      toastError(error?.message || "Erreur de génération PDF");
+      console.error("Erreur gÃ©nÃ©ration PDF:", error);
+      toastError(error?.message || "Erreur de gÃ©nÃ©ration PDF");
     } finally {
       setGeneratingPdf(false);
     }
   };
   
   // =============================================================================
-  // MARQUER COMME PRÊT À ENVOYER
+  // MARQUER COMME PRÃŠT Ã€ ENVOYER
   // =============================================================================
   const handleReadyToSend = async () => {
     await handleSave("ready_to_send");
   };
   
   // =============================================================================
-  // RESET DU FORMULAIRE À LA FERMETURE
+  // RESET DU FORMULAIRE Ã€ LA FERMETURE
   // =============================================================================
   useEffect(() => {
     if (!open) {
@@ -935,22 +935,22 @@ export function OfferComposer({
   const modalTitle = prefilledData?.isModification 
     ? `MODIFIER OFFRE (Nouvelle version ${(prefilledData.originalVersion || 1) + 1})`
     : editingOffer 
-      ? "ÉDITER OFFRE"
-      : "ÉTABLIR UNE OFFRE";
+      ? "Ã‰DITER OFFRE"
+      : "Ã‰TABLIR UNE OFFRE";
   
   // =============================================================================
   // RENDER - Sections Accordion
   // =============================================================================
   const accordionItems = [
     // =========================================================================
-    // SECTION 1 : DONNÉES DE BASE
+    // SECTION 1 : DONNÃ‰ES DE BASE
     // =========================================================================
     {
       id: "general",
       title: (
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-violet-400" />
-          <span>Données de base</span>
+          <span>DonnÃ©es de base</span>
         </div>
       ),
       content: (
@@ -959,7 +959,7 @@ export function OfferComposer({
           {Object.keys(errors).length > 0 && (
             <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-lg p-4 mb-4">
               <h3 className="text-sm font-bold text-red-800 dark:text-red-300 mb-2">
-                ⚠️ Champs obligatoires manquants
+                âš ï¸ Champs obligatoires manquants
               </h3>
               <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-400">
                 {Object.entries(errors).map(([key, message]) => (
@@ -981,7 +981,7 @@ export function OfferComposer({
                   value={formData.artist_id}
                   onChange={(e) => setFormData(prev => ({ ...prev, artist_id: e.target.value }))}
                 >
-                  <option value="">Sélectionner un artiste</option>
+                  <option value="">SÃ©lectionner un artiste</option>
                   {artists.map(artist => (
                     <option key={artist.id} value={artist.id}>{artist.name}</option>
                   ))}
@@ -990,7 +990,7 @@ export function OfferComposer({
                   variant="ghost"
                   size="sm"
                   title="Ajouter un artiste rapidement"
-                  onClick={() => toastSuccess("Ajout rapide artiste - À implémenter")}
+                  onClick={() => toastSuccess("Ajout rapide artiste - Ã€ implÃ©menter")}
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -1011,12 +1011,12 @@ export function OfferComposer({
                   value={formData.agency_contact_id}
                   onChange={(e) => setFormData(prev => ({ ...prev, agency_contact_id: e.target.value }))}
                 >
-                  <option value="">Sélectionner un booking agent</option>
+                  <option value="">SÃ©lectionner un booking agent</option>
                   {contacts.map(contact => (
                     <option key={contact.id} value={contact.id}>
                       {contact.display_name}
                       {contact.email_primary ? ` (${contact.email_primary})` : ""}
-                      {contact.id === formData.agency_contact_id ? " [Assigné à l'artiste]" : ""}
+                      {contact.id === formData.agency_contact_id ? " [AssignÃ© Ã  l'artiste]" : ""}
                     </option>
                   ))}
                 </select>
@@ -1024,7 +1024,7 @@ export function OfferComposer({
                   variant="ghost"
                   size="sm"
                   title="Ajouter un contact rapidement"
-                  onClick={() => toastSuccess("Ajout rapide contact - À implémenter")}
+                  onClick={() => toastSuccess("Ajout rapide contact - Ã€ implÃ©menter")}
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -1048,7 +1048,7 @@ export function OfferComposer({
                     setFormData(prev => ({ ...prev, date_time: "" }));
                   }
                 }}
-                placeholder="Sélectionner une date"
+                placeholder="SÃ©lectionner une date"
                 error={errors.date_time}
                 className={getFieldClassName("date_time")}
                 size="sm"
@@ -1065,7 +1065,7 @@ export function OfferComposer({
                   <TimePickerPopup
                     value={isTBC ? null : formData.performance_time}
                     onChange={(time) => setFormData(prev => ({ ...prev, performance_time: time || "14:00" }))}
-                    placeholder="Sélectionner une heure"
+                    placeholder="SÃ©lectionner une heure"
                     disabled={isTBC}
                     error={errors.performance_time}
                     className={getFieldClassName("performance_time", "flex-1")}
@@ -1083,10 +1083,10 @@ export function OfferComposer({
               </div>
             </div>
 
-            {/* Durée */}
+            {/* DurÃ©e */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Durée (min) <span className="text-red-500">*</span>
+                DurÃ©e (min) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -1102,17 +1102,17 @@ export function OfferComposer({
             </div>
           </div>
 
-          {/* Scène */}
+          {/* ScÃ¨ne */}
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Scène <span className="text-red-500">*</span>
+              ScÃ¨ne <span className="text-red-500">*</span>
             </label>
             <select
               className={getFieldClassName("stage_id", "w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
               value={formData.stage_id}
               onChange={(e) => setFormData(prev => ({ ...prev, stage_id: e.target.value }))}
             >
-              <option value="">Sélectionner une scène</option>
+              <option value="">SÃ©lectionner une scÃ¨ne</option>
               {stages.map(stage => (
                 <option key={stage.id} value={stage.id}>
                   {stage.name} {stage.capacity ? `(${stage.capacity} cap.)` : ""}
@@ -1127,7 +1127,7 @@ export function OfferComposer({
           {/* Deadline */}
           <div>
             <DatePickerPopup
-              label="Deadline (Date de validité) *"
+              label="Deadline (Date de validitÃ©) *"
               value={formData.validity_date ? new Date(formData.validity_date) : null}
               onChange={(date) => {
                 if (date) {
@@ -1139,7 +1139,7 @@ export function OfferComposer({
                   setFormData(prev => ({ ...prev, validity_date: "" }));
                 }
               }}
-              placeholder="Sélectionner une deadline"
+              placeholder="SÃ©lectionner une deadline"
               error={errors.validity_date}
               className={getFieldClassName("validity_date")}
               size="sm"
@@ -1190,7 +1190,7 @@ export function OfferComposer({
                   className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 mr-2"
                 />
                 <span className="text-sm text-gray-900 dark:text-gray-100">
-                  Montant brut, soumis à l'impôt à la source
+                  Montant brut, soumis Ã  l'impÃ´t Ã  la source
                 </span>
               </label>
             </div>
@@ -1203,7 +1203,7 @@ export function OfferComposer({
           {formData.amount_gross_is_subject_to_withholding && (
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Note explicative (impôt à la source)
+                Note explicative (impÃ´t Ã  la source)
               </label>
               <textarea
                 rows={2}
@@ -1549,10 +1549,10 @@ export function OfferComposer({
             </div>
           </div>
 
-          {/* CLAUSES D'EXCLUSIVITÉ */}
+          {/* CLAUSES D'EXCLUSIVITÃ‰ */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Clauses d'exclusivité
+              Clauses d'exclusivitÃ©
             </h3>
             <div className="space-y-2 max-h-64 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
               {exclusivityClauses.length === 0 ? (
@@ -1601,7 +1601,7 @@ export function OfferComposer({
               disabled={generatingPdf || saving}
             >
               <FileText className="w-4 h-4 mr-2" />
-              {generatingPdf ? "Génération..." : "Générer PDF"}
+              {generatingPdf ? "GÃ©nÃ©ration..." : "GÃ©nÃ©rer PDF"}
             </Button>
             
             {pdfUrl && (
@@ -1610,7 +1610,7 @@ export function OfferComposer({
                 onClick={() => setShowPdfPreview(true)}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                Prévisualiser
+                PrÃ©visualiser
               </Button>
             )}
           </div>
@@ -1635,7 +1635,7 @@ export function OfferComposer({
                 disabled={saving}
               >
                 <Send className="w-4 h-4 mr-2" />
-                Prêt à envoyer
+                PrÃªt Ã  envoyer
               </Button>
             )}
             
@@ -1644,20 +1644,20 @@ export function OfferComposer({
               onClick={() => handleSave("draft")}
               disabled={saving}
             >
-              {editingOffer ? "Modifier" : "Créer l'offre"}
+              {editingOffer ? "Modifier" : "CrÃ©er l'offre"}
             </Button>
           </div>
         </div>
       </DraggableModal>
 
       {/* PDF Preview Modal */}
-      <DraggableModal open={showPdfPreview} onClose={() => setShowPdfPreview(false)} title="Prévisualisation PDF" widthClass="max-w-6xl">
+      <DraggableModal open={showPdfPreview} onClose={() => setShowPdfPreview(false)} title="PrÃ©visualisation PDF" widthClass="max-w-6xl">
         <div className="h-96">
           {pdfUrl ? (
             <iframe
               src={pdfUrl}
               className="w-full h-full border border-gray-300 dark:border-gray-600 rounded-lg"
-              title="Prévisualisation PDF"
+              title="PrÃ©visualisation PDF"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
@@ -1672,7 +1672,7 @@ export function OfferComposer({
           {editingOffer && (
             <Button variant="primary" onClick={handleReadyToSend}>
               <Send className="w-4 h-4 mr-2" />
-              Prêt à envoyer
+              PrÃªt Ã  envoyer
             </Button>
           )}
         </div>
