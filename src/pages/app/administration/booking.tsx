@@ -10,7 +10,7 @@ import { useToast } from "@/components/aura/ToastProvider";
 import { ConfirmDeleteModal } from "@/components/ui/ConfirmDeleteModal";
 import { Settings, Plus, Calendar } from "lucide-react";
 
-import { OffersKanban } from "@/features/booking/OffersKanban";
+// import { OffersKanban } from "@/features/booking/OffersKanban"; // TEMPORAIRE: Kanban supprimé
 import { OffersListView } from "@/features/booking/OffersListView";
 import { OfferComposer } from "@/features/booking/modals/OfferComposer";
 import { SendOfferModal } from "@/features/booking/modals/SendOfferModal";
@@ -646,17 +646,24 @@ ${data.sender.name}
               {loading ? (
                 <div className="text-gray-600 dark:text-gray-300">Chargement…</div>
               ) : (
-                <OffersKanban
-                  columns={kanbanColumns}
-                  onMove={handleMove}
-                  onQuickAction={handleQuickAction}
-                  onSendOffer={handleSendOffer}
-                  onModifyOffer={() => setShowComposer(true)}
-                  onValidateOffer={(o) => handleMove(o.id, "accepted")}
-                  onRejectOffer={(o) => handleRejectOfferModal(o)}
-                  onDeleteOffer={handleDelete}
-                  onExportContract={handleExportContract}
-                />
+                <div className="p-8 text-center">
+                  <div className="text-gray-500 dark:text-gray-400 mb-4">
+                    Vue Kanban temporairement désactivée
+                  </div>
+                  <div className="text-sm text-gray-400 dark:text-gray-500">
+                    Un nouveau système de containers avec cards sera implémenté prochainement
+                  </div>
+                  <div className="mt-6">
+                    <OffersListView
+                      offers={activeOffers}
+                      onViewPdf={handleViewPdf}
+                      onSendOffer={handleSendOffer}
+                      onModify={() => setShowComposer(true)}
+                      onMove={handleMove}
+                      onDelete={(o) => handleDelete(o.id)}
+                    />
+                  </div>
+                </div>
               )}
             </CardBody>
           </Card>

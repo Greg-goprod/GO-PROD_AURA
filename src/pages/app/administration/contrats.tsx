@@ -6,7 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import Modal from '../../../components/ui/Modal';
 import { PageHeader } from '../../../components/aura/PageHeader';
-import { ContractsKanbanAura } from '../../../components/contracts/ContractsKanbanAura';
+// import { ContractsKanbanAura } from '../../../components/contracts/ContractsKanbanAura'; // TEMPORAIRE: Kanban supprimé
 import { ContractsListView } from '../../../components/contracts/ContractsListView';
 import { ContractForm } from '../../../components/contracts/ContractForm';
 import type { ContractFormData } from '../../../components/contracts/ContractForm';
@@ -292,20 +292,18 @@ export default function ContratsPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <ContractsKanbanAura
-                contracts={filteredContracts}
-                onStatusChange={handleStatusChange}
-                onView={handleView}
-                onUpload={handleUpload}
-                onSendEmail={handleSendEmail}
-                onDelete={handleDeleteContract}
-              />
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 mb-6">
+              <div className="text-center text-gray-500 dark:text-gray-400 mb-4">
+                Vue Kanban temporairement désactivée
+              </div>
+              <div className="text-center text-sm text-gray-400 dark:text-gray-500">
+                Un nouveau système de containers avec cards sera implémenté prochainement
+              </div>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Liste détaillée des contrats
+                Liste des contrats
               </h2>
               <ContractsListView
                 contracts={filteredContracts}
