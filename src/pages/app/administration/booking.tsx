@@ -271,6 +271,10 @@ export default function AdminBookingPage() {
     return [...accepted, ...rejected];
   }, [offers, rejectedPerfItems]);
 
+  const activeOffers = useMemo(() => {
+    return offers.filter((o) => o.status !== "accepted" && o.status !== "rejected");
+  }, [offers]);
+
   async function handleMove(offerId: string, newStatus: OfferStatus | "draft_and_todo") {
     try {
       if (newStatus === "draft_and_todo") return;
