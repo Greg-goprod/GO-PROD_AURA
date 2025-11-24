@@ -1,10 +1,11 @@
 import React, { useState, ReactNode } from 'react';
-import { DndContext, DragOverlay, closestCorners, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { KanbanColumn } from './KanbanColumn';
-import { AuraColor, AURA_KANBAN_COLORS } from './kanbanColors';
+import { AURA_KANBAN_COLORS, type AuraColor } from './kanbanColors';
 
 // Réexporter pour la rétrocompatibilité
-export { AuraColor, AURA_KANBAN_COLORS } from './kanbanColors';
+export { AURA_KANBAN_COLORS, type AuraColor };
 
 export interface KanbanColumnConfig<T extends string = string> {
   id: T;

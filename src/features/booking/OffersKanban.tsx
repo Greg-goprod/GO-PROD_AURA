@@ -1,6 +1,7 @@
 import React from "react";
 import type { Offer, OfferStatus } from "./bookingTypes";
-import { KanbanBoard, KanbanColumnConfig, AuraColor } from "@/components/aura/KanbanBoard";
+import { KanbanBoard, KanbanColumnConfig } from "@/components/aura/KanbanBoard";
+import type { AuraColor } from "@/components/aura/KanbanBoard";
 import { Card } from "@/components/aura/Card";
 import { Badge } from "@/components/aura/Badge";
 import { Button } from "@/components/aura/Button";

@@ -1,3 +1,6 @@
+/**
+ * Couleurs AURA pour le système Kanban
+ */
 export type AuraColor = 'taupe' | 'cobalt' | 'resolution' | 'eminence' | 'purpureus' | 'lightgreen';
 
 export const AURA_KANBAN_COLORS: Record<AuraColor, { hex: string; bg: string; border: string; text: string; badgeBg: string }> = {

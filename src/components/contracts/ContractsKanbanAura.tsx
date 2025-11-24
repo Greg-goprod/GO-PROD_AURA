@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { DndContext, DragOverlay, closestCorners, DragEndEvent } from '@dnd-kit/core';
 import type { Contract, ContractStatus } from '@/types/contracts';
-import { KanbanBoard, KanbanColumnConfig, AuraColor } from '@/components/aura/KanbanBoard';
+import { KanbanBoard, KanbanColumnConfig } from '@/components/aura/KanbanBoard';
+import type { AuraColor } from '@/components/aura/KanbanBoard';
 import { KanbanCard } from '@/components/aura/KanbanCard';
 import { ContractCard } from './ContractCard';
 

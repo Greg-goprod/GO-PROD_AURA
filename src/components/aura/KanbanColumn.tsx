@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import cn from 'classnames';
-import { AURA_KANBAN_COLORS, AuraColor } from './kanbanColors';
+import { AURA_KANBAN_COLORS } from './kanbanColors';
+import type { AuraColor } from './kanbanColors';
 
 export interface KanbanColumnProps {
   id: string;
