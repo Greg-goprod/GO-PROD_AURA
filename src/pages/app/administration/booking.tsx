@@ -8,7 +8,7 @@ import { Modal } from "@/components/aura/Modal";
 import { PageHeader } from "@/components/aura/PageHeader";
 import { useToast } from "@/components/aura/ToastProvider";
 import { ConfirmDeleteModal } from "@/components/ui/ConfirmDeleteModal";
-import { Settings, Plus, Calendar } from "lucide-react";
+import { Settings, Plus, Calendar, Eye, Send, Edit } from "lucide-react";
 
 // import { OffersKanban } from "@/features/booking/OffersKanban"; // TEMPORAIRE: Kanban supprimé
 import { OffersListView } from "@/features/booking/OffersListView";
@@ -27,6 +27,7 @@ import { generateContractPdfWithClauses, downloadPDF } from "@/features/booking/
 import { sendOfferEmail } from "@/services/emailService";
 import { getCurrentCompanyId } from "@/lib/tenant";
 import { supabase } from "@/lib/supabaseClient";
+import { fetchPerformancePrefill } from "@/features/booking/utils/performancePrefill";
 
 // Simple error box to avoid white screen
 function ErrorBox({ error }: { error: any }) {
@@ -262,14 +263,20 @@ export default function AdminBookingPage() {
     ] as any;
   }, [offers, offreAFaireItems]);
 
-  const closedOffers = useMemo(() => {
-    const accepted = offers.filter((o) => o.status === "accepted");
-    const rejected = [
+  const acceptedOffers = useMemo(() => {
+    return offers.filter((o) => o.status === "accepted");
+  }, [offers]);
+
+  const rejectedOffers = useMemo(() => {
+    return [
       ...offers.filter((o) => o.status === "rejected"),
       ...(rejectedPerfItems as any[]),
     ];
-    return [...accepted, ...rejected];
   }, [offers, rejectedPerfItems]);
+
+  const closedOffers = useMemo(() => {
+    return [...acceptedOffers, ...rejectedOffers];
+  }, [acceptedOffers, rejectedOffers]);
 
   const activeOffers = useMemo(() => {
     return offers.filter((o) => o.status !== "accepted" && o.status !== "rejected");
@@ -297,7 +304,8 @@ export default function AdminBookingPage() {
     console.log("[ACTION] handleQuickAction - item:", item);
     
     // Extraire le performance_id depuis l'id (format: "perf_XXX")
-    const performanceId = item.id?.startsWith('perf_') ? item.id.replace('perf_', '') : null;
+    const performanceId = item.performance_id
+      || (typeof item.id === "string" && item.id.startsWith("perf_") ? item.id.replace("perf_", "") : null);
     
     if (!performanceId) {
       toastError("ID de performance manquant");
@@ -306,44 +314,15 @@ export default function AdminBookingPage() {
     }
     
     try {
-      // Récupérer la performance complète avec toutes les relations
-      const { data: performance, error } = await supabase
-        .from('artist_performances')
-        .select(`
-          *,
-          artists(id, name),
-          event_days(id, date),
-          event_stages(id, name)
-        `)
-        .eq('id', performanceId)
-        .single();
-      
-      if (error) throw error;
-      
-      if (!performance) {
+      const effectivePerformanceId = performanceId;
+      const prefill = await fetchPerformancePrefill(effectivePerformanceId);
+      if (!prefill) {
         toastError("Performance introuvable");
         return;
       }
-      
-      console.log("[OK] Performance complète récupérée:", performance);
-      
-      // Pré-remplir le formulaire avec toutes les données
-      setPrefilledOfferData({
-        artist_name: performance.artists?.name || item.artist_name,
-        artist_id: performance.artist_id,
-        stage_name: performance.event_stages?.name || item.stage_name,
-        stage_id: performance.event_stage_id,
-        event_day_date: performance.event_days?.date,
-        performance_time: performance.performance_time || item.performance_time,
-        duration: performance.duration || item.duration,
-        fee_amount: performance.fee_amount || item.fee_amount,
-        fee_currency: performance.fee_currency || item.fee_currency || 'EUR',
-        performance_id: performance.id,
-      });
-      
-      console.log("[OK] OfferComposer prêt à s'ouvrir");
+      console.log("[OK] Performance complète récupérée:", prefill);
+      setPrefilledOfferData(prefill);
       setShowComposer(true);
-      
     } catch (e: any) {
       console.error("[ERROR] Erreur récupération performance:", e);
       toastError(e?.message || "Erreur lors de la récupération de la performance");
@@ -572,7 +551,7 @@ ${data.sender.name}
       toastError(e?.message || "Erreur sauvegarde performance");
     }
   }
-
+  
   return (
     <div className="p-6 space-y-6">
       <PageHeader
@@ -650,22 +629,255 @@ ${data.sender.name}
               {loading ? (
                 <div className="text-gray-600 dark:text-gray-300">Chargement…</div>
               ) : (
-                <div className="p-8 text-center">
-                  <div className="text-gray-500 dark:text-gray-400 mb-4">
-                    Vue Kanban temporairement désactivée
+                <div className="grid grid-cols-3 gap-6">
+                  {/* COLONNE 1: Brouillon / À faire */}
+                  <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+                    <div 
+                      className="px-4 py-3 rounded-lg font-semibold text-white text-center flex items-center justify-center gap-2"
+                      style={{ backgroundColor: '#1246A3' }}
+                    >
+                      <span>Brouillon / À faire</span>
+                      <span className="px-2 py-0.5 rounded text-sm font-bold bg-white text-gray-900">
+                        {kanbanColumns[0]?.offers?.length || 0}
+                      </span>
+                    </div>
+                    <div className="space-y-3 min-h-[200px]">
+                      {(kanbanColumns[0]?.offers || []).map((item: any) => (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-lg border border-gray-200 dark:border-gray-800 transition-all hover:shadow-lg hover:border-opacity-50"
+                          style={{ 
+                            borderColor: 'color-mix(in srgb, #1246A3 25%, transparent)',
+                            backgroundColor: 'var(--color-bg-elevated)'
+                          }}
+                        >
+                          {item.type === "performance" ? (
+                            <>
+                              <div className="flex items-center justify-between gap-2 text-sm">
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                  {item.artist_name}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {item.stage_name}
+                                  </span>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {item.performance_time ? item.performance_time.substring(0, 5) : ''}
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                className="mt-3 w-full"
+                                onClick={async () => {
+                                  try {
+                                    const performanceId =
+                                      item.performance_id ||
+                                      (typeof item.id === "string" && item.id.startsWith("perf_")
+                                        ? item.id.replace("perf_", "")
+                                        : null);
+                                    const prefill = await fetchPerformancePrefill(performanceId);
+                                    if (!prefill) {
+                                      toastError("Performance introuvable");
+                                      return;
+                                    }
+                                    setPrefilledOfferData(prefill);
+                                    setShowComposer(true);
+                                  } catch (error: any) {
+                                    console.error("[ERROR] Prefill depuis carte performance:", error);
+                                    toastError(error?.message || "Impossible de charger la performance");
+                                  }
+                                }}
+                              >
+                                Établir l'offre
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between gap-2 text-sm">
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                  {item.artist_name}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {item.stage_name}
+                                  </span>
+                                  {item.performance_time && (
+                                    <>
+                                      <span className="text-gray-400">•</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {item.performance_time.substring(0, 5)}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              {item.amount_display && (
+                                <div className="text-sm font-medium text-violet-600 dark:text-violet-400 mt-2">
+                                  {item.amount_display} {item.currency}
+                                </div>
+                              )}
+                              <div className="flex gap-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="flex-1"
+                                  onClick={() => handleViewPdf(item)}
+                                >
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Voir
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="primary"
+                                  className="flex-1"
+                                  onClick={() => handleMove(item.id, "ready_to_send")}
+                                >
+                                  <Edit className="w-3 h-3 mr-1" />
+                                  Prêt
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-400 dark:text-gray-500">
-                    Un nouveau système de containers avec cards sera implémenté prochainement
+
+                  {/* COLONNE 2: Prêt à envoyer */}
+                  <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+                    <div 
+                      className="px-4 py-3 rounded-lg font-semibold text-white text-center flex items-center justify-center gap-2"
+                      style={{ backgroundColor: '#661B7D' }}
+                    >
+                      <span>Prêt à envoyer</span>
+                      <span className="px-2 py-0.5 rounded text-sm font-bold bg-white text-gray-900">
+                        {kanbanColumns[1]?.offers?.length || 0}
+                      </span>
+                    </div>
+                    <div className="space-y-3 min-h-[200px]">
+                      {(kanbanColumns[1]?.offers || []).map((item: any) => (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-lg border border-gray-200 dark:border-gray-800 transition-all hover:shadow-lg hover:border-opacity-50"
+                          style={{ 
+                            borderColor: 'color-mix(in srgb, #661B7D 25%, transparent)',
+                            backgroundColor: 'var(--color-bg-elevated)'
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2 text-sm">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">
+                              {item.artist_name}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {item.stage_name}
+                              </span>
+                              {item.performance_time && (
+                                <>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {item.performance_time.substring(0, 5)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {item.amount_display && (
+                            <div className="text-sm font-medium text-violet-600 dark:text-violet-400 mt-2">
+                              {item.amount_display} {item.currency}
+                            </div>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="flex-1"
+                              onClick={() => handleViewPdf(item)}
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              Voir
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="flex-1"
+                              onClick={() => handleSendOffer(item)}
+                            >
+                              <Send className="w-3 h-3 mr-1" />
+                              Envoyer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="mt-6">
-                    <OffersListView
-                      offers={activeOffers}
-                      onViewPdf={handleViewPdf}
-                      onSendOffer={handleSendOffer}
-                      onModify={() => setShowComposer(true)}
-                      onMove={handleMove}
-                      onDelete={(o) => handleDelete(o.id)}
-                    />
+
+                  {/* COLONNE 3: Envoyées */}
+                  <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+                    <div 
+                      className="px-4 py-3 rounded-lg font-semibold text-center flex items-center justify-center gap-2"
+                      style={{ backgroundColor: '#90EE90', color: '#0A0D29' }}
+                    >
+                      <span>Envoyées</span>
+                      <span className="px-2 py-0.5 rounded text-sm font-bold bg-white text-gray-900">
+                        {kanbanColumns[2]?.offers?.length || 0}
+                      </span>
+                    </div>
+                    <div className="space-y-3 min-h-[200px]">
+                      {(kanbanColumns[2]?.offers || []).map((item: any) => (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-lg border border-gray-200 dark:border-gray-800 transition-all hover:shadow-lg hover:border-opacity-50"
+                          style={{ 
+                            borderColor: 'color-mix(in srgb, #90EE90 25%, transparent)',
+                            backgroundColor: 'var(--color-bg-elevated)'
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2 text-sm">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">
+                              {item.artist_name}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {item.stage_name}
+                              </span>
+                              {item.performance_time && (
+                                <>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {item.performance_time.substring(0, 5)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {item.amount_display && (
+                            <div className="text-sm font-medium text-violet-600 dark:text-violet-400 mt-2">
+                              {item.amount_display} {item.currency}
+                            </div>
+                          )}
+                          {item.sent_at && (
+                            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                              Envoyé le {new Date(item.sent_at).toLocaleDateString('fr-FR')}
+                            </div>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="flex-1"
+                              onClick={() => handleViewPdf(item)}
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              Voir PDF
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -675,29 +887,136 @@ ${data.sender.name}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-900 dark:text-gray-100">Offres clôturées</span>
-                <Badge color="blue">{closedOffers.length}</Badge>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">Offres acceptées</span>
+                <Badge color="lightgreen">{acceptedOffers.length}</Badge>
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Offres acceptées et rejetées
+                Offres validées et clôturées
               </div>
             </CardHeader>
             <CardBody>
               {loading ? (
                 <div className="text-gray-600 dark:text-gray-300">Chargement…</div>
-              ) : closedOffers.length === 0 ? (
+              ) : acceptedOffers.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  Aucune offre clôturée
+                  Aucune offre acceptée
                 </div>
               ) : (
                 <OffersListView
-                  offers={closedOffers}
+                  offers={acceptedOffers}
                   onViewPdf={handleViewPdf}
                   onSendOffer={handleSendOffer}
                   onModify={() => setShowComposer(true)}
                   onMove={handleMove}
                   onDelete={(o) => handleDelete(o.id)}
                 />
+              )}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-gray-900 dark:text-gray-100">Offres rejetées</span>
+                <Badge color="taupe">{rejectedOffers.length}</Badge>
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Offres refusées ou non retenues
+              </div>
+            </CardHeader>
+            <CardBody>
+              {loading ? (
+                <div className="text-gray-600 dark:text-gray-300">Chargement…</div>
+              ) : rejectedOffers.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  Aucune offre rejetée
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Artiste
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Scène
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Montant
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Raison
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Date rejet
+                        </th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rejectedOffers.map((item: any) => (
+                        <tr
+                          key={item.id}
+                          className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        >
+                          <td className="py-3 px-4">
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {item.artist_name}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {item.stage_name}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            {item.amount_display ? (
+                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {item.amount_display} {item.currency}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                              {item.rejection_reason || "Non précisé"}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            {item.rejected_at ? (
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {new Date(item.rejected_at).toLocaleDateString('fr-FR')}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex gap-2 justify-end">
+                              {item.type !== "performance" && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleViewPdf(item)}
+                                >
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Voir
+                                </Button>
+                              )}
+                              {item.type === "performance" && (
+                                <Badge color="taupe">Performance</Badge>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </CardBody>
           </Card>

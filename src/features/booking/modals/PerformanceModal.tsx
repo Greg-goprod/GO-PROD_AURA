@@ -436,7 +436,11 @@ export function PerformanceModal({
       <Modal
         isOpen={open}
         onClose={onClose}
-        title={initialData?.performanceId ? "Modifier la performance" : "Ajouter une performance"}
+        title={
+          financesOnly 
+            ? "Données financières" 
+            : (initialData?.performanceId ? "Modifier la performance" : "Ajouter une performance")
+        }
         size="xl"
         draggable={true}
         footer={

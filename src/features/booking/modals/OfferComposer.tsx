@@ -11,6 +11,10 @@ import { supabase } from "../../../lib/supabaseClient";
 // import { generateOfferPdfAndUpload } from "../pdf/pdfFill";
 import { createOffer, updateOffer } from "../bookingApi";
 
+const STANDARD_DURATIONS = [60, 75, 90];
+const getDurationMode = (duration?: number | null): "standard" | "custom" =>
+  STANDARD_DURATIONS.includes(duration || 0) ? "standard" : "custom";
+
 import {
   fetchArtists,
   fetchEventStages,
@@ -81,11 +85,21 @@ export interface OfferComposerProps {
     artist_name?: string;
     stage_id?: string;
     stage_name?: string;
-    event_day_date?: string;
+    event_day_date?: string | null;
     performance_time?: string;
     duration?: number | null;
     fee_amount?: number | null;
     fee_currency?: string | null;
+    amount_is_net?: boolean;
+    commission_percentage?: number | null;
+    amount_gross_is_subject_to_withholding?: boolean;
+    withholding_note?: string | null;
+    prod_fee_amount?: number | null;
+    backline_fee_amount?: number | null;
+    buyout_hotel_amount?: number | null;
+    buyout_meal_amount?: number | null;
+    flight_contribution_amount?: number | null;
+    technical_fee_amount?: number | null;
     isModification?: boolean;
     originalOfferId?: string;
     originalVersion?: number;
@@ -132,7 +146,7 @@ export function OfferComposer({
   const { success: toastSuccess, error: toastError } = useToast();
   
   // =============================================================================
-  // Ã‰TATS - DonnÃ©es chargÃ©es
+  // ÉTATS - Données chargées
   // =============================================================================
   const [artists, setArtists] = useState<Artist[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -141,7 +155,7 @@ export function OfferComposer({
   const [exclusivityClauses, setExclusivityClauses] = useState<ExclusivityClause[]>([]);
   
   // =============================================================================
-  // Ã‰TATS - Form data principale
+  // ÉTATS - Form data principale
   // =============================================================================
   const [formData, setFormData] = useState({
     artist_id: "",
@@ -160,9 +174,11 @@ export function OfferComposer({
     agency_commission_pct: null as number | null,
     validity_date: "",
   });
+  const [durationMode, setDurationMode] = useState<"standard" | "custom">("standard");
+  const [linkedPerformanceId, setLinkedPerformanceId] = useState<string | null>(null);
   
   // =============================================================================
-  // Ã‰TATS - Frais additionnels (6 types Ã— 2 champs = 12 Ã©tats)
+  // ÉTATS - Frais additionnels (6 types × 2 champs = 12 états)
   // =============================================================================
   const [prodFeeAmount, setProdFeeAmount] = useState<number | undefined>();
   const [prodFeeCurrency, setProdFeeCurrency] = useState<CurrencyCode>("EUR");
@@ -183,31 +199,31 @@ export function OfferComposer({
   const [technicalFeeCurrency, setTechnicalFeeCurrency] = useState<CurrencyCode>("EUR");
   
   // =============================================================================
-  // Ã‰TATS - Extras et Clauses
+  // ÉTATS - Extras et Clauses
   // =============================================================================
   const [selectedExtras, setSelectedExtras] = useState<Record<string, "festival" | "artist">>({});
   const [exclusivityClausesSelected, setExclusivityClausesSelected] = useState<string[]>([]);
   
   // =============================================================================
-  // Ã‰TATS - Gestion heure TBC
+  // ÉTATS - Gestion heure TBC
   // =============================================================================
   const [savedPerformanceTime, setSavedPerformanceTime] = useState<string>("20:00");
   const [isTBC, setIsTBC] = useState(false);
   
   // =============================================================================
-  // Ã‰TATS - Validation & PDF
+  // ÉTATS - Validation & PDF
   // =============================================================================
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   // =============================================================================
-  // Ã‰TATS - DonnÃ©es Budget Artistique
+  // ÉTATS - Données Budget Artistique
   // =============================================================================
   const [fieldsFromBudget, setFieldsFromBudget] = useState<Set<string>>(new Set());
   
   // =============================================================================
-  // CHARGEMENT INITIAL DES DONNÃ‰ES
+  // CHARGEMENT INITIAL DES DONNÉES
   // =============================================================================
   useEffect(() => {
     if (!open) return;
@@ -215,7 +231,7 @@ export function OfferComposer({
     const loadData = async () => {
       setLoading(true);
       try {
-        // Chargement parallÃ¨le de toutes les donnÃ©es
+        // Chargement parallèle de toutes les données
         const [
           artistsData,
           stagesData,
@@ -237,7 +253,7 @@ export function OfferComposer({
         setExclusivityClauses(clausesData);
         
       } catch (error: any) {
-        console.error("Erreur chargement donnÃ©es:", error);
+        console.error("Erreur chargement données:", error);
         toastError(error?.message || "Erreur de chargement");
       } finally {
         setLoading(false);
@@ -254,7 +270,7 @@ export function OfferComposer({
     try {
       const BOOKING_AGENT_ROLE_ID = "bcd6fcc3-2327-4e25-ae87-25d31605816d";
       
-      // RÃ©cupÃ©rer uniquement les contacts avec rÃ´le "Booking Agent"
+      // Récupérer uniquement les contacts avec rôle "Booking Agent"
       const { data, error } = await supabase
         .from("crm_contacts")
         .select(`
@@ -269,7 +285,7 @@ export function OfferComposer({
       
       if (error) throw error;
       
-      console.log(`[OK] ${data?.length || 0} Booking Agent(s) chargÃ©(s)`);
+      console.log(`[OK] ${data?.length || 0} Booking Agent(s) chargé(s)`);
       return data || [];
     } catch (error) {
       console.error("Erreur chargement booking agents:", error);
@@ -292,7 +308,7 @@ export function OfferComposer({
       if (error) throw error;
       
       if (data?.contact_id) {
-        console.log(`[OK] Booking agent principal trouvÃ© pour artiste: ${data.contact_id}`);
+        console.log(`[OK] Booking agent principal trouvé pour artiste: ${data.contact_id}`);
         return data.contact_id;
       }
       
@@ -304,15 +320,27 @@ export function OfferComposer({
   }
   
   // =============================================================================
-  // CHARGEMENT DONNÃ‰ES FINANCIÃˆRES DEPUIS BUDGET ARTISTIQUE
+  // CHARGEMENT DONNÉES FINANCIÈRES DEPUIS BUDGET ARTISTIQUE
   // =============================================================================
   const loadBudgetData = useCallback(async (artistId: string, eventId: string) => {
     try {
-      console.log(`[BUDGET] Chargement donnÃ©es pour artiste ${artistId}, event ${eventId}`);
+      console.log(`[BUDGET] Chargement données pour artiste ${artistId}, event ${eventId}`);
       
       const { data, error } = await supabase
         .from("artist_performances")
-        .select("fee_amount, fee_currency, fee_is_net, commission_percentage")
+        .select(`
+          fee_amount,
+          fee_currency,
+          fee_is_net,
+          commission_percentage,
+          prod_fee_amount,
+          backline_fee_amount,
+          buyout_hotel_amount,
+          buyout_meal_amount,
+          flight_contribution_amount,
+          technical_fee_amount,
+          withholding_note
+        `)
         .eq("artist_id", artistId)
         .eq("event_id", eventId)
         .maybeSingle();
@@ -320,36 +348,90 @@ export function OfferComposer({
       if (error) throw error;
       
       if (data && data.fee_amount !== null) {
-        console.log(`[BUDGET] DonnÃ©es trouvÃ©es:`, data);
+        console.log(`[BUDGET] Données trouvées:`, data);
         
         const newFieldsFromBudget = new Set<string>();
         
-        // PrÃ©-remplir les champs financiers
+        // Pré-remplir les champs financiers
         if (data.fee_amount !== null) {
           if (data.fee_is_net) {
-            setFormData(prev => ({ ...prev, amount_net: data.fee_amount, amount_is_net: true, amount_gross: null }));
+            setFormData(prev => ({
+              ...prev,
+              amount_net: data.fee_amount,
+              amount_is_net: true,
+              amount_gross: null,
+              amount_gross_is_subject_to_withholding: false,
+            }));
           } else {
-            setFormData(prev => ({ ...prev, amount_gross: data.fee_amount, amount_is_net: false, amount_net: null }));
+            setFormData(prev => ({
+              ...prev,
+              amount_gross: data.fee_amount,
+              amount_is_net: false,
+              amount_net: null,
+              amount_gross_is_subject_to_withholding: true,
+            }));
           }
-          newFieldsFromBudget.add('amount');
+          newFieldsFromBudget.add("amount");
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            amount_net: null,
+            amount_gross: null,
+            amount_gross_is_subject_to_withholding: false,
+          }));
         }
         
         if (data.fee_currency) {
           setFormData(prev => ({ ...prev, currency: data.fee_currency as CurrencyCode }));
-          newFieldsFromBudget.add('currency');
+          newFieldsFromBudget.add("currency");
         }
         
         if (data.commission_percentage !== null) {
           setFormData(prev => ({ ...prev, agency_commission_pct: data.commission_percentage }));
-          newFieldsFromBudget.add('commission');
+          newFieldsFromBudget.add("commission");
+        } else {
+          setFormData(prev => ({ ...prev, agency_commission_pct: null }));
         }
+
+        if (data.withholding_note) {
+          setFormData(prev => ({ ...prev, withholding_note: data.withholding_note }));
+          newFieldsFromBudget.add("withholding_note");
+        } else {
+          setFormData(prev => ({ ...prev, withholding_note: "" }));
+        }
+
+        const applyExtra = (
+          value: number | null | undefined,
+          setter: (val: number | undefined) => void,
+          fieldName: string
+        ) => {
+          if (value !== null && value !== undefined) {
+            setter(value);
+            newFieldsFromBudget.add(fieldName);
+          } else {
+            setter(undefined);
+          }
+        };
+
+        applyExtra(data.prod_fee_amount, setProdFeeAmount, "prod_fee_amount");
+        applyExtra(data.backline_fee_amount, setBacklineFeeAmount, "backline_fee_amount");
+        applyExtra(data.buyout_hotel_amount, setBuyoutHotelAmount, "buyout_hotel_amount");
+        applyExtra(data.buyout_meal_amount, setBuyoutMealAmount, "buyout_meal_amount");
+        applyExtra(data.flight_contribution_amount, setFlightContributionAmount, "flight_contribution_amount");
+        applyExtra(data.technical_fee_amount, setTechnicalFeeAmount, "technical_fee_amount");
         
         setFieldsFromBudget(newFieldsFromBudget);
         
-        toastSuccess("ðŸ’° DonnÃ©es financiÃ¨res chargÃ©es depuis le Budget Artistique");
+        toastSuccess("💰 Données financières chargées depuis le Budget Artistique");
       } else {
-        console.log("[BUDGET] Aucune donnÃ©e financiÃ¨re trouvÃ©e");
+        console.log("[BUDGET] Aucune donnée financière trouvée");
         setFieldsFromBudget(new Set());
+        setProdFeeAmount(undefined);
+        setBacklineFeeAmount(undefined);
+        setBuyoutHotelAmount(undefined);
+        setBuyoutMealAmount(undefined);
+        setFlightContributionAmount(undefined);
+        setTechnicalFeeAmount(undefined);
       }
     } catch (error) {
       console.error("[BUDGET] Erreur chargement:", error);
@@ -396,13 +478,16 @@ export function OfferComposer({
   }
   
   // =============================================================================
-  // PRÃ‰-REMPLISSAGE DU FORMULAIRE (Ã‰dition ou CrÃ©ation depuis performance)
+  // PRÉ-REMPLISSAGE DU FORMULAIRE (Édition ou Création depuis performance)
   // =============================================================================
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setLinkedPerformanceId(null);
+      return;
+    }
     
     if (editingOffer) {
-      // MODE Ã‰DITION
+      // MODE ÉDITION
       setFormData({
         artist_id: editingOffer.artist_id,
         stage_id: editingOffer.stage_id,
@@ -420,6 +505,7 @@ export function OfferComposer({
         agency_commission_pct: editingOffer.agency_commission_pct,
         validity_date: editingOffer.validity_date || "",
       });
+      setDurationMode(getDurationMode(editingOffer.duration || editingOffer.duration_minutes));
       
       // Frais additionnels
       setProdFeeAmount(editingOffer.prod_fee_amount || undefined);
@@ -435,7 +521,7 @@ export function OfferComposer({
       setTechnicalFeeAmount(editingOffer.technical_fee_amount || undefined);
       setTechnicalFeeCurrency((editingOffer.technical_fee_currency || "EUR") as CurrencyCode);
       
-      // Clauses d'exclusivitÃ©
+      // Clauses d'exclusivité
       if (editingOffer.terms_json && editingOffer.terms_json.selectedClauseIds) {
         setExclusivityClausesSelected(editingOffer.terms_json.selectedClauseIds);
       }
@@ -443,9 +529,9 @@ export function OfferComposer({
       // TODO: Charger les extras depuis offer_extras
       
     } else if (prefilledData) {
-      // MODE CRÃ‰ATION DEPUIS PERFORMANCE
+      // MODE CRÉATION DEPUIS PERFORMANCE
       
-      // Charger le booking agent principal de l'artiste (si artiste prÃ©-rempli)
+      // Charger le booking agent principal de l'artiste (si artiste pré-rempli)
       const loadMainAgent = async () => {
         if (prefilledData.artist_id) {
           const mainAgentId = await loadArtistMainBookingAgent(prefilledData.artist_id);
@@ -457,27 +543,69 @@ export function OfferComposer({
           }
         }
       };
+      const amountValue = prefilledData.fee_amount ?? null;
+      const isNet = prefilledData.amount_is_net ?? true;
+      const budgetFields = new Set<string>();
       
       setFormData({
         artist_id: prefilledData.artist_id || "",
         stage_id: prefilledData.stage_id || "",
         agency_contact_id: "", // Sera rempli par loadMainAgent()
-        date_time: prefilledData.event_day_date || "",
+        date_time: prefilledData.event_day_date || prefilledData.date_time || "",
         performance_time: prefilledData.performance_time ? prefilledData.performance_time.slice(0, 5) : "14:00",
         duration: prefilledData.duration || 60,
         currency: (prefilledData.fee_currency || "EUR") as CurrencyCode,
-        amount_net: prefilledData.fee_amount ?? null,
-        amount_gross: prefilledData.fee_amount ?? null,
-        amount_is_net: true,
-        amount_gross_is_subject_to_withholding: false,
-        withholding_note: "",
-        amount_display: prefilledData.fee_amount ?? null,
-        agency_commission_pct: null,
+        amount_net: isNet ? amountValue : null,
+        amount_gross: !isNet ? amountValue : null,
+        amount_is_net: isNet,
+        amount_gross_is_subject_to_withholding: !isNet || prefilledData.amount_gross_is_subject_to_withholding || false,
+        withholding_note: prefilledData.withholding_note || "",
+        amount_display: amountValue,
+        agency_commission_pct: prefilledData.commission_percentage ?? null,
         validity_date: "",
       });
+      setDurationMode(getDurationMode(prefilledData.duration));
+      setLinkedPerformanceId(prefilledData.performance_id || null);
+
+      if (amountValue !== null) budgetFields.add("amount");
+      if (prefilledData.fee_currency) budgetFields.add("currency");
+      if (prefilledData.commission_percentage !== null && prefilledData.commission_percentage !== undefined) {
+        budgetFields.add("commission");
+      }
+      if (prefilledData.withholding_note) {
+        budgetFields.add("withholding_note");
+      }
       
-      // Charger le booking agent aprÃ¨s setFormData
+      setProdFeeAmount(prefilledData.prod_fee_amount ?? undefined);
+      if (prefilledData.prod_fee_amount !== null && prefilledData.prod_fee_amount !== undefined) {
+        budgetFields.add("prod_fee_amount");
+      }
+      setBacklineFeeAmount(prefilledData.backline_fee_amount ?? undefined);
+      if (prefilledData.backline_fee_amount !== null && prefilledData.backline_fee_amount !== undefined) {
+        budgetFields.add("backline_fee_amount");
+      }
+      setBuyoutHotelAmount(prefilledData.buyout_hotel_amount ?? undefined);
+      if (prefilledData.buyout_hotel_amount !== null && prefilledData.buyout_hotel_amount !== undefined) {
+        budgetFields.add("buyout_hotel_amount");
+      }
+      setBuyoutMealAmount(prefilledData.buyout_meal_amount ?? undefined);
+      if (prefilledData.buyout_meal_amount !== null && prefilledData.buyout_meal_amount !== undefined) {
+        budgetFields.add("buyout_meal_amount");
+      }
+      setFlightContributionAmount(prefilledData.flight_contribution_amount ?? undefined);
+      if (prefilledData.flight_contribution_amount !== null && prefilledData.flight_contribution_amount !== undefined) {
+        budgetFields.add("flight_contribution_amount");
+      }
+      setTechnicalFeeAmount(prefilledData.technical_fee_amount ?? undefined);
+      if (prefilledData.technical_fee_amount !== null && prefilledData.technical_fee_amount !== undefined) {
+        budgetFields.add("technical_fee_amount");
+      }
+      setFieldsFromBudget(budgetFields);
+      
+      // Charger le booking agent après setFormData
       loadMainAgent();
+    } else {
+      setDurationMode(getDurationMode(formData.duration));
     }
   }, [open, editingOffer, prefilledData]);
   
@@ -490,7 +618,7 @@ export function OfferComposer({
     const loadAgentForArtist = async () => {
       const mainAgentId = await loadArtistMainBookingAgent(formData.artist_id);
       if (mainAgentId) {
-        console.log(`[AUTO] Booking agent auto-sÃ©lectionnÃ©: ${mainAgentId}`);
+        console.log(`[AUTO] Booking agent auto-sélectionné: ${mainAgentId}`);
         setFormData(prev => ({
           ...prev,
           agency_contact_id: mainAgentId
@@ -498,7 +626,7 @@ export function OfferComposer({
       }
     };
     
-    // Charger les donnÃ©es financiÃ¨res du Budget Artistique
+    // Charger les données financières du Budget Artistique
     const loadBudget = async () => {
       await loadBudgetData(formData.artist_id, eventId);
     };
@@ -523,7 +651,7 @@ export function OfferComposer({
   // =============================================================================
   const handleToggleTBC = () => {
     if (isTBC) {
-      // Restaurer l'heure sauvegardÃ©e
+      // Restaurer l'heure sauvegardée
       setFormData(prev => ({ ...prev, performance_time: savedPerformanceTime }));
       setIsTBC(false);
     } else {
@@ -550,7 +678,7 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // GESTION CLAUSES D'EXCLUSIVITÃ‰
+  // GESTION CLAUSES D'EXCLUSIVITÉ
   // =============================================================================
   const handleExclusivityClauseToggle = (clauseId: string, checked: boolean) => {
     setExclusivityClausesSelected(prev =>
@@ -563,13 +691,13 @@ export function OfferComposer({
   // =============================================================================
   const handleToggleAmountIsNet = (checked: boolean) => {
     if (checked) {
-      setFormData(prev => ({ ...prev, amount_is_net: true, amount_gross_is_subject_to_withholding: false }));
+      switchAmountMode(true);
     }
   };
   
   const handleToggleGrossWithholding = (checked: boolean) => {
     if (checked) {
-      setFormData(prev => ({ ...prev, amount_is_net: false, amount_gross_is_subject_to_withholding: true }));
+      switchAmountMode(false);
     }
   };
   
@@ -582,8 +710,8 @@ export function OfferComposer({
     // 1. Artiste
     if (!formData.artist_id) newErrors.artist_id = "Artiste requis";
     
-    // 2. ScÃ¨ne
-    if (!formData.stage_id) newErrors.stage_id = "ScÃ¨ne requise";
+    // 2. Scène
+    if (!formData.stage_id) newErrors.stage_id = "Scène requise";
     
     // 3. Date
     if (!formData.date_time) newErrors.date_time = "Date requise";
@@ -591,19 +719,19 @@ export function OfferComposer({
     // 4. Heure
     if (!formData.performance_time) newErrors.performance_time = "Heure requise";
     
-    // 5. DurÃ©e
-    if (!formData.duration || formData.duration <= 0) newErrors.duration = "DurÃ©e requise";
+    // 5. Durée
+    if (!formData.duration || formData.duration <= 0) newErrors.duration = "Durée requise";
     
-    // 6. Date de validitÃ©
-    if (!formData.validity_date) newErrors.validity_date = "Date de validitÃ© requise";
+    // 6. Date de validité
+    if (!formData.validity_date) newErrors.validity_date = "Date de validité requise";
     
-    // 7. Au moins un montant renseignÃ©
+    // 7. Au moins un montant renseigné
     const hasAmount = 
       (formData.amount_is_net && formData.amount_net) || 
       (formData.amount_gross_is_subject_to_withholding && formData.amount_gross);
     if (!hasAmount) newErrors.amount_display = "Montant requis";
     
-    // 8. Au moins un type de montant sÃ©lectionnÃ©
+    // 8. Au moins un type de montant sélectionné
     if (!formData.amount_is_net && !formData.amount_gross_is_subject_to_withholding) {
       newErrors.amount_type = "Type de montant requis (Net OU Brut)";
     }
@@ -616,12 +744,68 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // HELPER : Classe CSS pour champs avec erreur OU prÃ©-remplis depuis budget
+  // HELPER : Classe CSS pour champs financiers avec indicateurs visuels
   // =============================================================================
+  const getFinancialFieldClassName = (fieldName: string, value: any, baseClassName: string = ""): string => {
+    // Priorité 1: Erreur de validation
+    if (errors[fieldName]) {
+      return `${baseClassName} border-red-500 bg-red-50 dark:bg-red-900/10`.trim();
+    }
+    
+    // Priorité 2: Pré-rempli depuis Budget (VERT)
+    if (fieldsFromBudget.has(fieldName)) {
+      return `${baseClassName} border-[#90EE90] bg-[#90EE9015] dark:border-[#90EE90] dark:bg-[#90EE9020]`.trim();
+    }
+    
+    // Priorité 3: Champ vide (ROUGE clair)
+    const isEmpty = value === null || value === undefined || value === '' || value === 0;
+    if (isEmpty && !fieldsFromBudget.has(fieldName)) {
+      return `${baseClassName} border-red-300 dark:border-red-800`.trim();
+    }
+    
+    // Par défaut: Normal
+    return baseClassName;
+  };
+
+  // Pour compatibilité avec les autres champs
   const getFieldClassName = (fieldName: string, baseClassName: string = ""): string => {
     const errorClass = errors[fieldName] ? "border-red-500 bg-red-50 dark:bg-red-900/10" : "";
     const budgetClass = fieldsFromBudget.has(fieldName) ? "border-[#90EE90] bg-[#90EE9015] dark:border-[#90EE90] dark:bg-[#90EE9020]" : "";
     return `${baseClassName} ${errorClass || budgetClass}`.trim();
+  };
+
+  const activeAmountValue = formData.amount_is_net ? formData.amount_net : formData.amount_gross;
+
+  const handleAmountInputChange = (value: number | null) => {
+    if (formData.amount_is_net) {
+      setFormData(prev => ({ ...prev, amount_net: value, amount_display: value }));
+    } else {
+      setFormData(prev => ({ ...prev, amount_gross: value, amount_display: value }));
+    }
+  };
+
+  const switchAmountMode = (toNet: boolean) => {
+    setFormData(prev => {
+      const currentAmount = prev.amount_is_net ? prev.amount_net : prev.amount_gross;
+      if (toNet) {
+        return {
+          ...prev,
+          amount_is_net: true,
+          amount_net: currentAmount,
+          amount_gross: null,
+          amount_gross_is_subject_to_withholding: false,
+          amount_display: currentAmount,
+        };
+      }
+      return {
+        ...prev,
+        amount_is_net: false,
+        amount_gross_is_subject_to_withholding: true,
+        amount_gross: currentAmount,
+        amount_net: null,
+        amount_display: currentAmount,
+      };
+    });
   };
   
   // =============================================================================
@@ -651,7 +835,7 @@ export function OfferComposer({
       // Calcul montant display
       const amountDisplay = formData.amount_is_net ? formData.amount_net : formData.amount_gross;
       
-      // RÃ©cupÃ©rer noms pour cache
+      // Récupérer noms pour cache
       const artistName = artists.find(a => a.id === formData.artist_id)?.name || "";
       const stageName = stages.find(s => s.id === formData.stage_id)?.name || "";
       
@@ -693,7 +877,7 @@ export function OfferComposer({
         technical_fee_amount: technicalFeeAmount || null,
         technical_fee_currency: technicalFeeAmount ? technicalFeeCurrency : null,
         
-        // Clauses d'exclusivitÃ©
+        // Clauses d'exclusivité
         terms_json: {
           selectedClauseIds: exclusivityClausesSelected,
         },
@@ -701,18 +885,18 @@ export function OfferComposer({
       
       let offerId: string;
       
-      // DÃ‰TERMINER LE MODE (CRITIQUE)
+      // DÉTERMINER LE MODE (CRITIQUE)
       const isModification = prefilledData?.isModification === true;
       
       if (editingOffer) {
-        // MODE Ã‰DITION DIRECTE (modifie l'offre existante, mÃªme ID)
+        // MODE ÉDITION DIRECTE (modifie l'offre existante, même ID)
         await updateOffer(editingOffer.id, payload);
         offerId = editingOffer.id;
-        console.log("âœï¸ Offre Ã©ditÃ©e:", offerId);
+        console.log("âœï¸ Offre éditée:", offerId);
         
       } else if (isModification && prefilledData?.originalOfferId) {
-        // MODE MODIFICATION AVEC VERSIONING (crÃ©e nouvelle version)
-        console.log("ðŸ”„ CrÃ©ation nouvelle version");
+        // MODE MODIFICATION AVEC VERSIONING (crée nouvelle version)
+        console.log("ðŸ”„ Création nouvelle version");
         
         // Appeler la fonction RPC create_offer_version
         const { data, error } = await supabase.rpc("create_offer_version", {
@@ -725,35 +909,35 @@ export function OfferComposer({
         // La fonction retourne un tableau avec {id, version}
         if (data && data.length > 0) {
           offerId = data[0].id;
-          console.log(`[OK] Version ${data[0].version} crÃ©Ã©e: ${offerId}`);
+          console.log(`[OK] Version ${data[0].version} créée: ${offerId}`);
         } else {
-          throw new Error("Aucune donnÃ©e retournÃ©e par create_offer_version");
+          throw new Error("Aucune donnée retournée par create_offer_version");
         }
         
       } else {
-        // MODE CRÃ‰ATION NORMALE (nouvelle offre v1)
+        // MODE CRÉATION NORMALE (nouvelle offre v1)
         const newOffer = await createOffer(payload);
         offerId = newOffer.id;
-        console.log(`[OK] Nouvelle offre crÃ©Ã©e: ${offerId} (v1)`);
+        console.log(`[OK] Nouvelle offre créée: ${offerId} (v1)`);
       }
       
       // Sauvegarder les extras
       await saveOfferExtras(offerId, selectedExtras);
       
-      // Mettre Ã  jour les donnÃ©es financiÃ¨res dans artist_performances
-      await updateArtistPerformanceFinancials();
+      // Mettre à jour la performance liée (horaires + finances)
+      await syncLinkedPerformance();
       
-      // Mise Ã  jour statut si ready_to_send
+      // Mise à jour statut si ready_to_send
       if (status === "ready_to_send") {
         await updateOffer(offerId, {
           ready_to_send_at: new Date().toISOString(),
         });
         
-        // DÃ©clencher l'Ã©vÃ©nement de changement de statut
+        // Déclencher l'événement de changement de statut
         window.dispatchEvent(new CustomEvent("offer-status-changed"));
       }
       
-      toastSuccess(editingOffer ? "Offre modifiÃ©e" : "Offre crÃ©Ã©e");
+      toastSuccess(editingOffer ? "Offre modifiée" : "Offre créée");
       onSuccess();
       onClose();
       
@@ -766,48 +950,74 @@ export function OfferComposer({
   };
   
   // =============================================================================
-  // MISE Ã€ JOUR DES DONNÃ‰ES FINANCIÃˆRES DANS ARTIST_PERFORMANCES
+  // SYNCHRONISATION DE LA PERFORMANCE LIÉE (HORAIRES + FINANCIER)
   // =============================================================================
-  async function updateArtistPerformanceFinancials(): Promise<void> {
+  async function syncLinkedPerformance(): Promise<void> {
     try {
-      // Si l'utilisateur a modifiÃ© les donnÃ©es financiÃ¨res, mettre Ã  jour artist_performances
       const feeAmount = formData.amount_is_net ? formData.amount_net : formData.amount_gross;
-      
-      if (!feeAmount || !formData.artist_id) return;
-      
-      console.log("[BUDGET] Mise Ã  jour des donnÃ©es financiÃ¨res dans artist_performances");
-      
-      // Chercher la performance
-      const { data: existingPerf } = await supabase
-        .from("artist_performances")
-        .select("id")
-        .eq("artist_id", formData.artist_id)
-        .eq("event_id", eventId)
-        .maybeSingle();
-      
-      const updateData = {
+      if (!formData.artist_id || !eventId) return;
+
+      let performanceId = linkedPerformanceId;
+
+      if (!performanceId) {
+        const { data: existingPerf } = await supabase
+          .from("artist_performances")
+          .select("id")
+          .eq("artist_id", formData.artist_id)
+          .eq("event_id", eventId)
+          .maybeSingle();
+        performanceId = existingPerf?.id || null;
+      }
+
+      if (!performanceId) {
+        console.warn("[PERF] Aucune performance liée, synchronisation ignorée");
+        return;
+      }
+
+      const updates: Record<string, any> = {
         fee_amount: feeAmount,
         fee_currency: formData.currency,
         fee_is_net: formData.amount_is_net,
         commission_percentage: formData.agency_commission_pct,
+        prod_fee_amount: prodFeeAmount ?? null,
+        backline_fee_amount: backlineFeeAmount ?? null,
+        buyout_hotel_amount: buyoutHotelAmount ?? null,
+        buyout_meal_amount: buyoutMealAmount ?? null,
+        flight_contribution_amount: flightContributionAmount ?? null,
+        technical_fee_amount: technicalFeeAmount ?? null,
+        event_stage_id: formData.stage_id || null,
+        duration: formData.duration || null,
       };
-      
-      if (existingPerf) {
-        // Mettre Ã  jour
-        const { error } = await supabase
-          .from("artist_performances")
-          .update(updateData)
-          .eq("id", existingPerf.id);
-        
-        if (error) throw error;
-        console.log("[BUDGET] DonnÃ©es financiÃ¨res mises Ã  jour");
-      } else {
-        // CrÃ©er une nouvelle entrÃ©e si nÃ©cessaire (optionnel)
-        console.log("[BUDGET] Aucune performance existante, donnÃ©es non sauvegardÃ©es");
+
+      if (!isTBC && formData.performance_time) {
+        updates.performance_time = formData.performance_time.length === 5
+          ? `${formData.performance_time}:00`
+          : formData.performance_time;
       }
+
+      if (formData.date_time) {
+        const { data: day } = await supabase
+          .from("event_days")
+          .select("id")
+          .eq("event_id", eventId)
+          .eq("date", formData.date_time)
+          .maybeSingle();
+        if (day?.id) {
+          updates.event_day_id = day.id;
+        }
+      }
+
+      const { error } = await supabase
+        .from("artist_performances")
+        .update(updates)
+        .eq("id", performanceId);
+
+      if (error) throw error;
+
+      console.log("[PERF] Performance synchronisée");
+      window.dispatchEvent(new CustomEvent("performance-updated"));
     } catch (error) {
-      console.error("[BUDGET] Erreur mise Ã  jour artist_performances:", error);
-      // Ne pas bloquer la sauvegarde de l'offre si cette mise Ã  jour Ã©choue
+      console.error("[PERF] Erreur synchronisation performance:", error);
     }
   }
   
@@ -825,7 +1035,7 @@ export function OfferComposer({
         .delete()
         .eq("offer_id", offerId);
 
-      // 2. PrÃ©parer insertions
+      // 2. Préparer insertions
       const extrasToInsert = Object.entries(extras).map(([extraId, chargedTo]) => ({
         id: crypto.randomUUID(),
         offer_id: offerId,
@@ -834,14 +1044,14 @@ export function OfferComposer({
         company_id: companyId,
       }));
 
-      // 3. InsÃ©rer nouveaux extras
+      // 3. Insérer nouveaux extras
       if (extrasToInsert.length > 0) {
         const { error } = await supabase
           .from("offer_extras")
           .insert(extrasToInsert);
         
         if (error) throw error;
-        console.log(`[OK] ${extrasToInsert.length} extras sauvegardÃ©s`);
+        console.log(`[OK] ${extrasToInsert.length} extras sauvegardés`);
       }
     } catch (error) {
       console.error("[ERROR] Erreur sauvegarde extras:", error);
@@ -850,35 +1060,35 @@ export function OfferComposer({
   }
   
   // =============================================================================
-  // GÃ‰NÃ‰RATION DU PDF (Ã€ IMPLÃ‰MENTER)
+  // GÉNÉRATION DU PDF (À IMPLÉMENTER)
   // =============================================================================
   const handleGeneratePdf = async () => {
     if (!validateForm()) {
-      toastError("Veuillez remplir tous les champs obligatoires avant de gÃ©nÃ©rer le PDF");
+      toastError("Veuillez remplir tous les champs obligatoires avant de générer le PDF");
       return;
     }
     
     setGeneratingPdf(true);
     try {
-      // TODO: ImplÃ©menter la gÃ©nÃ©ration PDF
-      toastSuccess("GÃ©nÃ©ration PDF - Ã€ implÃ©menter");
+      // TODO: Implémenter la génération PDF
+      toastSuccess("Génération PDF - À implémenter");
     } catch (error: any) {
-      console.error("Erreur gÃ©nÃ©ration PDF:", error);
-      toastError(error?.message || "Erreur de gÃ©nÃ©ration PDF");
+      console.error("Erreur génération PDF:", error);
+      toastError(error?.message || "Erreur de génération PDF");
     } finally {
       setGeneratingPdf(false);
     }
   };
   
   // =============================================================================
-  // MARQUER COMME PRÃŠT Ã€ ENVOYER
+  // MARQUER COMME PRÊT À ENVOYER
   // =============================================================================
   const handleReadyToSend = async () => {
     await handleSave("ready_to_send");
   };
   
   // =============================================================================
-  // RESET DU FORMULAIRE Ã€ LA FERMETURE
+  // RESET DU FORMULAIRE À LA FERMETURE
   // =============================================================================
   useEffect(() => {
     if (!open) {
@@ -935,22 +1145,22 @@ export function OfferComposer({
   const modalTitle = prefilledData?.isModification 
     ? `MODIFIER OFFRE (Nouvelle version ${(prefilledData.originalVersion || 1) + 1})`
     : editingOffer 
-      ? "Ã‰DITER OFFRE"
-      : "Ã‰TABLIR UNE OFFRE";
+      ? "ÉDITER OFFRE"
+      : "ÉTABLIR UNE OFFRE";
   
   // =============================================================================
   // RENDER - Sections Accordion
   // =============================================================================
   const accordionItems = [
     // =========================================================================
-    // SECTION 1 : DONNÃ‰ES DE BASE
+    // SECTION 1 : DONNÉES DE BASE
     // =========================================================================
     {
       id: "general",
       title: (
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-violet-400" />
-          <span>DonnÃ©es de base</span>
+          <span>Données de base</span>
         </div>
       ),
       content: (
@@ -959,7 +1169,7 @@ export function OfferComposer({
           {Object.keys(errors).length > 0 && (
             <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-lg p-4 mb-4">
               <h3 className="text-sm font-bold text-red-800 dark:text-red-300 mb-2">
-                âš ï¸ Champs obligatoires manquants
+                ⚠️ Champs obligatoires manquants
               </h3>
               <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-400">
                 {Object.entries(errors).map(([key, message]) => (
@@ -969,7 +1179,7 @@ export function OfferComposer({
             </div>
           )}
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Artiste */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -981,7 +1191,7 @@ export function OfferComposer({
                   value={formData.artist_id}
                   onChange={(e) => setFormData(prev => ({ ...prev, artist_id: e.target.value }))}
                 >
-                  <option value="">SÃ©lectionner un artiste</option>
+                  <option value="">Sélectionner un artiste</option>
                   {artists.map(artist => (
                     <option key={artist.id} value={artist.id}>{artist.name}</option>
                   ))}
@@ -990,7 +1200,7 @@ export function OfferComposer({
                   variant="ghost"
                   size="sm"
                   title="Ajouter un artiste rapidement"
-                  onClick={() => toastSuccess("Ajout rapide artiste - Ã€ implÃ©menter")}
+                  onClick={() => toastSuccess("Ajout rapide artiste - À implémenter")}
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -1011,12 +1221,12 @@ export function OfferComposer({
                   value={formData.agency_contact_id}
                   onChange={(e) => setFormData(prev => ({ ...prev, agency_contact_id: e.target.value }))}
                 >
-                  <option value="">SÃ©lectionner un booking agent</option>
+                  <option value="">Sélectionner un booking agent</option>
                   {contacts.map(contact => (
                     <option key={contact.id} value={contact.id}>
                       {contact.display_name}
                       {contact.email_primary ? ` (${contact.email_primary})` : ""}
-                      {contact.id === formData.agency_contact_id ? " [AssignÃ© Ã  l'artiste]" : ""}
+                      {contact.id === formData.agency_contact_id ? " [Assigné à l'artiste]" : ""}
                     </option>
                   ))}
                 </select>
@@ -1024,7 +1234,7 @@ export function OfferComposer({
                   variant="ghost"
                   size="sm"
                   title="Ajouter un contact rapidement"
-                  onClick={() => toastSuccess("Ajout rapide contact - Ã€ implÃ©menter")}
+                  onClick={() => toastSuccess("Ajout rapide contact - À implémenter")}
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -1032,7 +1242,7 @@ export function OfferComposer({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date */}
             <div>
               <DatePickerPopup
@@ -1048,7 +1258,7 @@ export function OfferComposer({
                     setFormData(prev => ({ ...prev, date_time: "" }));
                   }
                 }}
-                placeholder="SÃ©lectionner une date"
+                placeholder="Sélectionner une date"
                 error={errors.date_time}
                 className={getFieldClassName("date_time")}
                 size="sm"
@@ -1065,11 +1275,11 @@ export function OfferComposer({
                   <TimePickerPopup
                     value={isTBC ? null : formData.performance_time}
                     onChange={(time) => setFormData(prev => ({ ...prev, performance_time: time || "14:00" }))}
-                    placeholder="SÃ©lectionner une heure"
+                    placeholder="Sélectionner une heure"
                     disabled={isTBC}
                     error={errors.performance_time}
                     className={getFieldClassName("performance_time", "flex-1")}
-                    size="sm"
+                    size="default"
                   />
                   <Button
                     variant={isTBC ? "primary" : "ghost"}
@@ -1083,36 +1293,81 @@ export function OfferComposer({
               </div>
             </div>
 
-            {/* DurÃ©e */}
+            {/* Durée */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                DurÃ©e (min) <span className="text-red-500">*</span>
+                Durée (min) <span className="text-red-500">*</span>
               </label>
-              <input
-                type="number"
-                min="5"
-                step="5"
-                className={getFieldClassName("duration", "w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
-                value={formData.duration}
-                onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
-              />
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="duration_mode"
+                      checked={durationMode === "standard"}
+                      onChange={() => setDurationMode("standard")}
+                      className="w-4 h-4 text-violet-600 focus:ring-violet-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Durée standard :</span>
+                  </label>
+                  {STANDARD_DURATIONS.map((duration) => (
+                    <Button
+                      key={duration}
+                      type="button"
+                      size="sm"
+                      variant={durationMode === "standard" && formData.duration === duration ? "primary" : "secondary"}
+                      onClick={() => {
+                        setDurationMode("standard");
+                        setFormData(prev => ({ ...prev, duration }));
+                      }}
+                    >
+                      {duration} min
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="duration_mode"
+                      checked={durationMode === "custom"}
+                      onChange={() => setDurationMode("custom")}
+                      className="w-4 h-4 text-violet-600 focus:ring-violet-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Durée personnalisée :</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    step="5"
+                    className={getFieldClassName("duration", "w-24 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
+                    value={formData.duration || ""}
+                    onChange={(e) => {
+                      const nextValue = parseInt(e.target.value) || 0;
+                      setDurationMode("custom");
+                      setFormData(prev => ({ ...prev, duration: nextValue }));
+                    }}
+                    disabled={durationMode !== "custom"}
+                  />
+                </div>
+              </div>
               {errors.duration && (
                 <span className="text-sm text-red-600 dark:text-red-400">{errors.duration}</span>
               )}
             </div>
           </div>
 
-          {/* ScÃ¨ne */}
+          {/* Scène */}
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-              ScÃ¨ne <span className="text-red-500">*</span>
+              Scène <span className="text-red-500">*</span>
             </label>
             <select
               className={getFieldClassName("stage_id", "w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
               value={formData.stage_id}
               onChange={(e) => setFormData(prev => ({ ...prev, stage_id: e.target.value }))}
             >
-              <option value="">SÃ©lectionner une scÃ¨ne</option>
+              <option value="">Sélectionner une scène</option>
               {stages.map(stage => (
                 <option key={stage.id} value={stage.id}>
                   {stage.name} {stage.capacity ? `(${stage.capacity} cap.)` : ""}
@@ -1127,7 +1382,7 @@ export function OfferComposer({
           {/* Deadline */}
           <div>
             <DatePickerPopup
-              label="Deadline (Date de validitÃ©) *"
+              label="Deadline (Date de validité) *"
               value={formData.validity_date ? new Date(formData.validity_date) : null}
               onChange={(date) => {
                 if (date) {
@@ -1139,7 +1394,7 @@ export function OfferComposer({
                   setFormData(prev => ({ ...prev, validity_date: "" }));
                 }
               }}
-              placeholder="SÃ©lectionner une deadline"
+              placeholder="Sélectionner une deadline"
               error={errors.validity_date}
               className={getFieldClassName("validity_date")}
               size="sm"
@@ -1190,7 +1445,7 @@ export function OfferComposer({
                   className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 mr-2"
                 />
                 <span className="text-sm text-gray-900 dark:text-gray-100">
-                  Montant brut, soumis Ã  l'impÃ´t Ã  la source
+                  Montant brut, soumis à l'impôt à la source
                 </span>
               </label>
             </div>
@@ -1199,23 +1454,7 @@ export function OfferComposer({
             )}
           </div>
 
-          {/* Note si withholding */}
-          {formData.amount_gross_is_subject_to_withholding && (
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Note explicative (impÃ´t Ã  la source)
-              </label>
-              <textarea
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-violet-500"
-                placeholder="Ex: Taux d'imposition applicable..."
-                value={formData.withholding_note}
-                onChange={(e) => setFormData(prev => ({ ...prev, withholding_note: e.target.value }))}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Devise */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -1236,38 +1475,27 @@ export function OfferComposer({
               )}
             </div>
 
-            {/* Montant net */}
-            <div>
+            {/* Montant */}
+            <div className="md:col-span-1">
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Montant net
+                Montant <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
                 step="0.01"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                value={formData.amount_net || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, amount_net: parseFloat(e.target.value) || null }))}
+                className={getFinancialFieldClassName('amount', activeAmountValue, "w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
+                value={activeAmountValue ?? ""}
+                onChange={(e) => {
+                  const parsed = e.target.value === "" ? null : Number(e.target.value);
+                  handleAmountInputChange(Number.isNaN(parsed) ? null : parsed);
+                }}
                 placeholder="0.00"
               />
+              {errors.amount_display && (
+                <span className="text-sm text-red-600 dark:text-red-400">{errors.amount_display}</span>
+              )}
             </div>
 
-            {/* Montant brut */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Montant brut
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                value={formData.amount_gross || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, amount_gross: parseFloat(e.target.value) || null }))}
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             {/* Commission */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -1278,29 +1506,11 @@ export function OfferComposer({
                 step="0.01"
                 min="0"
                 max="100"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                value={formData.agency_commission_pct || ""}
+                className={getFinancialFieldClassName('commission', formData.agency_commission_pct, "w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
+                value={formData.agency_commission_pct ?? ""}
                 onChange={(e) => setFormData(prev => ({ ...prev, agency_commission_pct: parseFloat(e.target.value) || null }))}
                 placeholder="0.00"
               />
-            </div>
-
-            {/* Montant d'affichage */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Montant d'affichage <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                className={getFieldClassName("amount_display", "w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent")}
-                value={formData.amount_display || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, amount_display: parseFloat(e.target.value) || null }))}
-                placeholder="0.00"
-              />
-              {errors.amount_display && (
-                <span className="text-sm text-red-600 dark:text-red-400">{errors.amount_display}</span>
-              )}
             </div>
           </div>
 
@@ -1310,7 +1520,7 @@ export function OfferComposer({
               Frais additionnels (optionnels)
             </h3>
             
-            <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* PROD FEE */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1320,7 +1530,7 @@ export function OfferComposer({
                   <input
                     type="number"
                     step="0.01"
-                    className="flex-1 px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className={getFinancialFieldClassName('prod_fee_amount', prodFeeAmount, "flex-1 px-2 py-1.5 text-sm rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100")}
                     value={prodFeeAmount || ""}
                     onChange={(e) => setProdFeeAmount(parseFloat(e.target.value) || undefined)}
                     placeholder="Montant"
@@ -1347,7 +1557,7 @@ export function OfferComposer({
                   <input
                     type="number"
                     step="0.01"
-                    className="flex-1 px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className={getFinancialFieldClassName('backline_fee_amount', backlineFeeAmount, "flex-1 px-2 py-1.5 text-sm rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100")}
                     value={backlineFeeAmount || ""}
                     onChange={(e) => setBacklineFeeAmount(parseFloat(e.target.value) || undefined)}
                     placeholder="Montant"
@@ -1374,7 +1584,7 @@ export function OfferComposer({
                   <input
                     type="number"
                     step="0.01"
-                    className="flex-1 px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className={getFinancialFieldClassName('buyout_hotel_amount', buyoutHotelAmount, "flex-1 px-2 py-1.5 text-sm rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100")}
                     value={buyoutHotelAmount || ""}
                     onChange={(e) => setBuyoutHotelAmount(parseFloat(e.target.value) || undefined)}
                     placeholder="Montant"
@@ -1401,7 +1611,7 @@ export function OfferComposer({
                   <input
                     type="number"
                     step="0.01"
-                    className="flex-1 px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className={getFinancialFieldClassName('buyout_meal_amount', buyoutMealAmount, "flex-1 px-2 py-1.5 text-sm rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100")}
                     value={buyoutMealAmount || ""}
                     onChange={(e) => setBuyoutMealAmount(parseFloat(e.target.value) || undefined)}
                     placeholder="Montant"
@@ -1428,7 +1638,7 @@ export function OfferComposer({
                   <input
                     type="number"
                     step="0.01"
-                    className="flex-1 px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className={getFinancialFieldClassName('flight_contribution_amount', flightContributionAmount, "flex-1 px-2 py-1.5 text-sm rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100")}
                     value={flightContributionAmount || ""}
                     onChange={(e) => setFlightContributionAmount(parseFloat(e.target.value) || undefined)}
                     placeholder="Montant"
@@ -1455,7 +1665,7 @@ export function OfferComposer({
                   <input
                     type="number"
                     step="0.01"
-                    className="flex-1 px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className={getFinancialFieldClassName('technical_fee_amount', technicalFeeAmount, "flex-1 px-2 py-1.5 text-sm rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100")}
                     value={technicalFeeAmount || ""}
                     onChange={(e) => setTechnicalFeeAmount(parseFloat(e.target.value) || undefined)}
                     placeholder="Montant"
@@ -1549,10 +1759,10 @@ export function OfferComposer({
             </div>
           </div>
 
-          {/* CLAUSES D'EXCLUSIVITÃ‰ */}
+          {/* CLAUSES D'EXCLUSIVITÉ */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Clauses d'exclusivitÃ©
+              Clauses d'exclusivité
             </h3>
             <div className="space-y-2 max-h-64 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
               {exclusivityClauses.length === 0 ? (
@@ -1601,7 +1811,7 @@ export function OfferComposer({
               disabled={generatingPdf || saving}
             >
               <FileText className="w-4 h-4 mr-2" />
-              {generatingPdf ? "GÃ©nÃ©ration..." : "GÃ©nÃ©rer PDF"}
+              {generatingPdf ? "Génération..." : "Générer PDF"}
             </Button>
             
             {pdfUrl && (
@@ -1610,7 +1820,7 @@ export function OfferComposer({
                 onClick={() => setShowPdfPreview(true)}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                PrÃ©visualiser
+                Prévisualiser
               </Button>
             )}
           </div>
@@ -1635,7 +1845,7 @@ export function OfferComposer({
                 disabled={saving}
               >
                 <Send className="w-4 h-4 mr-2" />
-                PrÃªt Ã  envoyer
+                Prêt à envoyer
               </Button>
             )}
             
@@ -1644,20 +1854,20 @@ export function OfferComposer({
               onClick={() => handleSave("draft")}
               disabled={saving}
             >
-              {editingOffer ? "Modifier" : "CrÃ©er l'offre"}
+              {editingOffer ? "Modifier" : "Créer l'offre"}
             </Button>
           </div>
         </div>
       </DraggableModal>
 
       {/* PDF Preview Modal */}
-      <DraggableModal open={showPdfPreview} onClose={() => setShowPdfPreview(false)} title="PrÃ©visualisation PDF" widthClass="max-w-6xl">
+      <DraggableModal open={showPdfPreview} onClose={() => setShowPdfPreview(false)} title="Prévisualisation PDF" widthClass="max-w-6xl">
         <div className="h-96">
           {pdfUrl ? (
             <iframe
               src={pdfUrl}
               className="w-full h-full border border-gray-300 dark:border-gray-600 rounded-lg"
-              title="PrÃ©visualisation PDF"
+              title="Prévisualisation PDF"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
@@ -1672,7 +1882,7 @@ export function OfferComposer({
           {editingOffer && (
             <Button variant="primary" onClick={handleReadyToSend}>
               <Send className="w-4 h-4 mr-2" />
-              PrÃªt Ã  envoyer
+              Pret a envoyer
             </Button>
           )}
         </div>

@@ -22,6 +22,7 @@ import {
 import { sendOfferEmail } from "@/services/emailService";
 import { getCurrentCompanyId } from "@/lib/tenant";
 import { supabase } from "@/lib/supabaseClient";
+import { fetchPerformancePrefill } from "@/features/booking/utils/performancePrefill";
 
 // Simple error box to avoid white screen
 function ErrorBox({ error }: { error: any }) {
@@ -207,15 +208,34 @@ export default function BookingPage() {
 
   async function handleQuickAction(action: "create_offer", item: any) {
     if (action !== "create_offer") return;
-    setPrefilledOfferData({
-      artist_name: item.artist_name,
-      stage_name: item.stage_name,
-      performance_time: item.performance_time,
-      duration: item.duration,
-      fee_amount: item.fee_amount,
-      fee_currency: item.fee_currency,
-    });
-    setShowComposer(true);
+    try {
+      const performanceId =
+        item.performance_id ||
+        (typeof item.id === "string" && item.id.startsWith("perf_") ? item.id.replace("perf_", "") : null);
+
+      if (performanceId) {
+        const prefill = await fetchPerformancePrefill(performanceId);
+        if (prefill) {
+          setPrefilledOfferData(prefill);
+          setShowComposer(true);
+          return;
+        }
+      }
+
+      // Fallback minimal si pas de performance associée
+      setPrefilledOfferData({
+        artist_name: item.artist_name,
+        stage_name: item.stage_name,
+        performance_time: item.performance_time,
+        duration: item.duration,
+        fee_amount: item.fee_amount,
+        fee_currency: item.fee_currency,
+      });
+      setShowComposer(true);
+    } catch (error: any) {
+      console.error("[ERROR] Prefill offre (BookingPage):", error);
+      toastError(error?.message || "Impossible de récupérer la performance");
+    }
   }
 
   async function handleSendOffer(offer: Offer) {

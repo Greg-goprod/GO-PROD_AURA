@@ -68,6 +68,11 @@ const formatCurrency = (amount: number, currency: string) => {
   return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${currency}`;
 };
 
+// Formater un montant sans la devise
+const formatAmount = (amount: number) => {
+  return amount.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+
 const calculateCommissionAmount = (feeAmount: number | null, commissionPercentage: number | null): number => {
   if (!feeAmount || !commissionPercentage) return 0;
   return feeAmount * (commissionPercentage / 100);
@@ -433,6 +438,15 @@ export default function BudgetArtistiquePage() {
     const totalFeesByCurrency: Record<string, number> = {};
     const totalCommissionByCurrency: Record<string, number> = {};
     const totalAllFeesByCurrency: Record<string, number> = {};
+    const totalAdditionalFeesByCurrency: Record<string, number> = {};
+    
+    // Cachets Net et Brut en CHF
+    let totalNetFeesCHF = 0;
+    let totalBrutFeesCHF = 0;
+    
+    // Impôts sur Net et sur Brut
+    let totalWithholdingTaxOnNet = 0;
+    let totalWithholdingTaxOnBrut = 0;
     
     performances.forEach(perf => {
       const currency = perf.fee_currency || 'EUR';
@@ -453,43 +467,66 @@ export default function BudgetArtistiquePage() {
       // Frais additionnels
       if (perf.prod_fee_amount) {
         totalAllFeesByCurrency[currency] = (totalAllFeesByCurrency[currency] || 0) + perf.prod_fee_amount;
+        totalAdditionalFeesByCurrency[currency] = (totalAdditionalFeesByCurrency[currency] || 0) + perf.prod_fee_amount;
       }
       if (perf.backline_fee_amount) {
         totalAllFeesByCurrency[currency] = (totalAllFeesByCurrency[currency] || 0) + perf.backline_fee_amount;
+        totalAdditionalFeesByCurrency[currency] = (totalAdditionalFeesByCurrency[currency] || 0) + perf.backline_fee_amount;
       }
       if (perf.buyout_hotel_amount) {
         totalAllFeesByCurrency[currency] = (totalAllFeesByCurrency[currency] || 0) + perf.buyout_hotel_amount;
+        totalAdditionalFeesByCurrency[currency] = (totalAdditionalFeesByCurrency[currency] || 0) + perf.buyout_hotel_amount;
       }
       if (perf.buyout_meal_amount) {
         totalAllFeesByCurrency[currency] = (totalAllFeesByCurrency[currency] || 0) + perf.buyout_meal_amount;
+        totalAdditionalFeesByCurrency[currency] = (totalAdditionalFeesByCurrency[currency] || 0) + perf.buyout_meal_amount;
       }
       if (perf.flight_contribution_amount) {
         totalAllFeesByCurrency[currency] = (totalAllFeesByCurrency[currency] || 0) + perf.flight_contribution_amount;
+        totalAdditionalFeesByCurrency[currency] = (totalAdditionalFeesByCurrency[currency] || 0) + perf.flight_contribution_amount;
       }
       if (perf.technical_fee_amount) {
         totalAllFeesByCurrency[currency] = (totalAllFeesByCurrency[currency] || 0) + perf.technical_fee_amount;
+        totalAdditionalFeesByCurrency[currency] = (totalAdditionalFeesByCurrency[currency] || 0) + perf.technical_fee_amount;
       }
     });
 
+    // Calculer les totaux Net/Brut (montants offerts) et les impôts par budget
+    artistsBudgets.forEach(budget => {
+      let taxResultIndex = 0;
+      budget.performances.forEach((perf) => {
+        // On ne traite que les performances avec un cachet
+        if (perf.fee_amount && perf.fee_amount > 0 && perf.fee_currency) {
+          const feeInCHF = convertToCHF(perf.fee_amount, perf.fee_currency);
+          const taxResult = budget.withholding_tax_results[taxResultIndex];
+          const isNet = perf.fee_is_net ?? false;
+          
+          if (isNet) {
+            // Performance NET : le montant offert est le montant net
+            totalNetFeesCHF += feeInCHF;
+            if (taxResult) {
+              totalWithholdingTaxOnNet += taxResult.taxAmount;
+            }
+          } else {
+            // Performance BRUT : le montant offert est le montant brut
+            totalBrutFeesCHF += feeInCHF;
+            if (taxResult) {
+              totalWithholdingTaxOnBrut += taxResult.taxAmount;
+            }
+          }
+          
+          if (taxResult) {
+            taxResultIndex++;
+          }
+        }
+      });
+    });
+
     const totalInCHF = convertAllToCHF(totalAllFeesByCurrency);
-    
-    // Total de l'impôt à la source en CHF
-    const totalWithholdingTaxCHF = artistsBudgets.reduce(
-      (sum, budget) => sum + budget.total_withholding_tax_chf,
-      0
-    );
-    
-    // Total des cachets NETS versés aux artistes (après impôts) en CHF
-    const totalNetFeesCHF = artistsBudgets.reduce(
-      (sum, budget) => {
-        const netFeesForArtist = budget.withholding_tax_results.reduce(
-          (netSum, taxResult) => netSum + taxResult.netAmount,
-          0
-        );
-        return sum + netFeesForArtist;
-      },
-      0
-    );
+    const totalCommissionCHF = convertAllToCHF(totalCommissionByCurrency);
+    const totalAdditionalFeesCHF = convertAllToCHF(totalAdditionalFeesByCurrency);
+    const totalWithholdingTaxCHF = totalWithholdingTaxOnNet + totalWithholdingTaxOnBrut;
+    const totalFeesCHF = totalNetFeesCHF + totalBrutFeesCHF;
 
     return {
       totalArtists,
@@ -498,9 +535,16 @@ export default function BudgetArtistiquePage() {
       totalFeesByCurrency,
       totalCommissionByCurrency,
       totalAllFeesByCurrency,
+      totalAdditionalFeesByCurrency,
       totalInCHF,
+      totalCommissionCHF,
+      totalAdditionalFeesCHF,
       totalWithholdingTaxCHF,
+      totalWithholdingTaxOnNet,
+      totalWithholdingTaxOnBrut,
       totalNetFeesCHF,
+      totalBrutFeesCHF,
+      totalFeesCHF,
     };
   }, [artistsBudgets, performances]);
 
@@ -603,83 +647,147 @@ export default function BudgetArtistiquePage() {
 
       {/* Statistiques globales */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        {/* Container 1: Total des cachets en CHF */}
         <Card>
           <CardBody>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
-                <Users className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Artistes</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{globalStats.totalArtists}</p>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 mb-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Performances</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{globalStats.totalPerformances}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">Cachets CHF</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500 dark:text-gray-400">Total Net:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {formatCurrency(Math.round(globalStats.totalNetFeesCHF), 'CHF')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500 dark:text-gray-400">Total Brut:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {formatCurrency(Math.round(globalStats.totalBrutFeesCHF), 'CHF')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-1 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">TOTAL:</span>
+                <span className="text-base font-bold text-blue-900 dark:text-blue-100">
+                  {formatCurrency(Math.round(globalStats.totalFeesCHF), 'CHF')}
+                </span>
               </div>
             </div>
           </CardBody>
         </Card>
 
+        {/* Container 2: Total des commissions */}
         <Card>
           <CardBody>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-violet-600 dark:text-violet-400" />
               </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Durée totale</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {Math.floor(globalStats.totalDuration / 60)}h {globalStats.totalDuration % 60}min
-                </p>
-              </div>
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">Commissions</p>
             </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Budget total</p>
-                <div className="space-y-0.5">
-                  {Object.entries(globalStats.totalAllFeesByCurrency).map(([currency, amount]) => (
-                    <p key={currency} className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {formatCurrency(amount, currency)}
-                    </p>
-                  ))}
-                  {Object.keys(globalStats.totalAllFeesByCurrency).length === 0 && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">-</p>
-                  )}
+            <div className="space-y-1">
+              {['EUR', 'USD', 'GBP', 'CHF'].map((currency) => (
+                <div key={currency} className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Com {currency}:</span>
+                  <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                    {formatCurrency(Math.round(globalStats.totalCommissionByCurrency[currency] || 0), currency)}
+                  </span>
                 </div>
+              ))}
+              <div className="flex justify-between items-center pt-1 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">TOTAL COM:</span>
+                <span className="text-base font-bold text-violet-900 dark:text-violet-100">
+                  {formatCurrency(Math.round(globalStats.totalCommissionCHF), 'CHF')}
+                </span>
               </div>
             </div>
           </CardBody>
         </Card>
 
+        {/* Container 3: Add Fees */}
         <Card>
           <CardBody>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">Add Fee</p>
+            </div>
+            <div className="space-y-1">
+              {['EUR', 'USD', 'GBP', 'CHF'].map((currency) => (
+                <div key={currency} className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Add {currency}:</span>
+                  <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                    {formatCurrency(Math.round(globalStats.totalAdditionalFeesByCurrency[currency] || 0), currency)}
+                  </span>
+                </div>
+              ))}
+              <div className="flex justify-between items-center pt-1 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">TOTAL ADD:</span>
+                <span className="text-base font-bold text-orange-900 dark:text-orange-100">
+                  {formatCurrency(Math.round(globalStats.totalAdditionalFeesCHF), 'CHF')}
+                </span>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Container 4: Impôts à la source */}
+        <Card>
+          <CardBody>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              </div>
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">Impôts Source</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500 dark:text-gray-400">Sur Net:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {formatCurrency(Math.round(globalStats.totalWithholdingTaxOnNet), 'CHF')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500 dark:text-gray-400">Sur Brut:</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {formatCurrency(Math.round(globalStats.totalWithholdingTaxOnBrut), 'CHF')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-1 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">TOTAL IS:</span>
+                <span className="text-base font-bold text-red-900 dark:text-red-100">
+                  {formatCurrency(Math.round(globalStats.totalWithholdingTaxCHF), 'CHF')}
+                </span>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Container 5: Budget total */}
+        <Card>
+          <CardBody>
+            <div className="flex items-center gap-2 mb-3">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                 <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Budget en CHF</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                  {formatCurrency(globalStats.totalInCHF, 'CHF')}
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">Budget Total</p>
+            </div>
+            <div className="space-y-1">
+              {Object.entries(globalStats.totalAllFeesByCurrency).map(([currency, amount]) => (
+                <p key={currency} className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                  {formatCurrency(Math.round(amount), currency)}
+                </p>
+              ))}
+              {Object.keys(globalStats.totalAllFeesByCurrency).length === 0 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">-</p>
+              )}
+              <div className="pt-1 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-lg font-bold text-green-900 dark:text-green-100">
+                  {formatCurrency(Math.round(globalStats.totalInCHF), 'CHF')}
                 </p>
               </div>
             </div>
@@ -690,28 +798,27 @@ export default function BudgetArtistiquePage() {
       {/* Liste des artistes avec leurs budgets */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-900 dark:text-gray-100">Budget par artiste</span>
-            <Badge color="blue">{artistsBudgets.length}</Badge>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Détail des cachets et performances par artiste
-            </p>
-            {loadingRates ? (
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Chargement des taux de change...
-              </p>
-            ) : currencyRates ? (
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Taux de change en temps réel : 1 EUR = {currencyRates.CHF.toFixed(3)} CHF • 1 USD = {(currencyRates.CHF / currencyRates.USD).toFixed(3)} CHF • 1 GBP = {(currencyRates.CHF / currencyRates.GBP).toFixed(3)} CHF
-                {lastUpdate && ` • Mis à jour: ${new Date(lastUpdate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`}
-              </p>
-            ) : (
-              <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                Utilisation des taux de change fixes (API indisponible)
-              </p>
-            )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">Budget artistique</span>
+              <Badge color="blue">{artistsBudgets.length}</Badge>
+            </div>
+            <div>
+              {loadingRates ? (
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Chargement des taux de change...
+                </p>
+              ) : currencyRates ? (
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Taux de change en temps réel : 1 EUR = {currencyRates.CHF.toFixed(3)} CHF • 1 USD = {(currencyRates.CHF / currencyRates.USD).toFixed(3)} CHF • 1 GBP = {(currencyRates.CHF / currencyRates.GBP).toFixed(3)} CHF
+                  {lastUpdate && ` • Mis à jour: ${new Date(lastUpdate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`}
+                </p>
+              ) : (
+                <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                  Utilisation des taux de change fixes (API indisponible)
+                </p>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardBody>
@@ -728,43 +835,46 @@ export default function BudgetArtistiquePage() {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-900 z-10">
+                    <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-900 z-10">
                       ARTISTE
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      DEVISE
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       CACHET
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[150px]">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider min-w-[150px]">
                       COMMISSION
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-l border-gray-300 dark:border-gray-600">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-l border-gray-300 dark:border-gray-600">
                       PROD
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       BACKLINE
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       HOTEL
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       MEAL
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       VOL
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       TECH
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      IMPÔTS SOURCE
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-violet-50 dark:bg-violet-900/20">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider bg-violet-50 dark:bg-violet-900/20">
                       TOTAL
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-green-50 dark:bg-green-900/20">
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      IMPÔTS SOURCE
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider bg-green-50 dark:bg-green-900/20">
                       TOTAL CHF
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider sticky right-0 bg-gray-50 dark:bg-gray-900 z-10">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider sticky right-0 bg-gray-50 dark:bg-gray-900 z-10">
                       ACTIONS
                     </th>
                   </tr>
@@ -776,11 +886,62 @@ export default function BudgetArtistiquePage() {
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <td className="px-4 py-3 sticky left-0 bg-white dark:bg-gray-800 z-10">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {budget.artist_name}
+                        <div className="flex items-center gap-2">
+                          {/* Icône de modification alignée à gauche */}
+                          {budget.performances.length > 0 && (
+                            <button
+                              onClick={() => handleEditFinances(budget.performances[0])}
+                              className="p-1 text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex-shrink-0"
+                              title="Modifier finances"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {budget.artist_name}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {(() => {
+                                // Afficher le type de cachet (Net ou Brut) uniquement si un cachet est défini
+                                const performancesWithFee = budget.performances.filter(p => p.fee_amount && p.fee_currency);
+                                
+                                if (performancesWithFee.length === 0) {
+                                  // Aucun cachet défini → ne rien afficher
+                                  return '';
+                                }
+                                
+                                const hasNet = performancesWithFee.some(p => p.fee_is_net);
+                                const hasBrut = performancesWithFee.some(p => !p.fee_is_net);
+                                
+                                if (hasNet && hasBrut) {
+                                  return 'Net • Brut';
+                                } else if (hasNet) {
+                                  return 'Net';
+                                } else {
+                                  return 'Brut';
+                                }
+                              })()}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {budget.performances_count} perf • {Math.floor(budget.total_duration / 60)}h{budget.total_duration % 60 > 0 ? ` ${budget.total_duration % 60}min` : ''}
+                      </td>
+                      
+                      {/* Colonne DEVISE */}
+                      <td className="px-4 py-3 text-center">
+                        <div className="space-y-1">
+                          {budget.performances.map((perf) => {
+                            if (!perf.fee_currency) return null;
+                            
+                            return (
+                              <div key={perf.id} className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {perf.fee_currency}
+                              </div>
+                            );
+                          })}
+                          {budget.performances.every(p => !p.fee_currency) && (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                          )}
                         </div>
                       </td>
                       
@@ -793,7 +954,7 @@ export default function BudgetArtistiquePage() {
                             
                             return (
                               <div key={perf.id} className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-                                {formatCurrency(perf.fee_amount, perf.fee_currency)} <span className="text-[10px] text-gray-500 dark:text-gray-400">({feeType})</span>
+                                {formatAmount(perf.fee_amount)} <span className="text-[10px] text-gray-500 dark:text-gray-400">({feeType})</span>
                               </div>
                             );
                           })}
@@ -812,7 +973,7 @@ export default function BudgetArtistiquePage() {
                             
                             return (
                               <div key={perf.id} className="text-xs font-semibold text-violet-900 dark:text-violet-100">
-                                {perf.commission_percentage}% • {formatCurrency(commissionAmount, perf.fee_currency)}
+                                {perf.commission_percentage}% • {formatAmount(commissionAmount)}
                               </div>
                             );
                           })}
@@ -826,7 +987,7 @@ export default function BudgetArtistiquePage() {
                         <div className="space-y-1">
                           {Object.entries(budget.total_prod_fee).map(([currency, amount]) => (
                             <div key={currency} className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatCurrency(amount, currency)}
+                              {formatAmount(amount)}
                             </div>
                           ))}
                           {Object.keys(budget.total_prod_fee).length === 0 && (
@@ -838,7 +999,7 @@ export default function BudgetArtistiquePage() {
                         <div className="space-y-1">
                           {Object.entries(budget.total_backline_fee).map(([currency, amount]) => (
                             <div key={currency} className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatCurrency(amount, currency)}
+                              {formatAmount(amount)}
                             </div>
                           ))}
                           {Object.keys(budget.total_backline_fee).length === 0 && (
@@ -850,7 +1011,7 @@ export default function BudgetArtistiquePage() {
                         <div className="space-y-1">
                           {Object.entries(budget.total_buyout_hotel).map(([currency, amount]) => (
                             <div key={currency} className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatCurrency(amount, currency)}
+                              {formatAmount(amount)}
                             </div>
                           ))}
                           {Object.keys(budget.total_buyout_hotel).length === 0 && (
@@ -862,7 +1023,7 @@ export default function BudgetArtistiquePage() {
                         <div className="space-y-1">
                           {Object.entries(budget.total_buyout_meal).map(([currency, amount]) => (
                             <div key={currency} className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatCurrency(amount, currency)}
+                              {formatAmount(amount)}
                             </div>
                           ))}
                           {Object.keys(budget.total_buyout_meal).length === 0 && (
@@ -874,7 +1035,7 @@ export default function BudgetArtistiquePage() {
                         <div className="space-y-1">
                           {Object.entries(budget.total_flight_contribution).map(([currency, amount]) => (
                             <div key={currency} className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatCurrency(amount, currency)}
+                              {formatAmount(amount)}
                             </div>
                           ))}
                           {Object.keys(budget.total_flight_contribution).length === 0 && (
@@ -886,10 +1047,24 @@ export default function BudgetArtistiquePage() {
                         <div className="space-y-1">
                           {Object.entries(budget.total_technical_fee).map(([currency, amount]) => (
                             <div key={currency} className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatCurrency(amount, currency)}
+                              {formatAmount(amount)}
                             </div>
                           ))}
                           {Object.keys(budget.total_technical_fee).length === 0 && (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Colonne TOTAL */}
+                      <td className="px-4 py-3 text-right bg-violet-50 dark:bg-violet-900/20">
+                        <div className="space-y-1">
+                          {Object.entries(budget.total_all_fees).map(([currency, amount]) => (
+                            <div key={currency} className="text-sm font-bold text-violet-900 dark:text-violet-100">
+                              {formatCurrency(amount, currency)}
+                            </div>
+                          ))}
+                          {Object.keys(budget.total_all_fees).length === 0 && (
                             <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
                           )}
                         </div>
@@ -914,19 +1089,6 @@ export default function BudgetArtistiquePage() {
                           <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
                         )}
                       </td>
-                      
-                      <td className="px-4 py-3 text-right bg-violet-50 dark:bg-violet-900/20">
-                        <div className="space-y-1">
-                          {Object.entries(budget.total_all_fees).map(([currency, amount]) => (
-                            <div key={currency} className="text-sm font-bold text-violet-900 dark:text-violet-100">
-                              {formatCurrency(amount, currency)}
-                            </div>
-                          ))}
-                          {Object.keys(budget.total_all_fees).length === 0 && (
-                            <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
-                          )}
-                        </div>
-                      </td>
                       <td className="px-4 py-3 text-right bg-green-50 dark:bg-green-900/20">
                         <div className="text-sm font-bold text-green-900 dark:text-green-100">
                           {formatCurrency(budget.total_in_chf, 'CHF')}
@@ -936,14 +1098,7 @@ export default function BudgetArtistiquePage() {
                       <td className="px-4 py-3 sticky right-0 bg-white dark:bg-gray-800 z-10">
                         <div className="flex flex-col gap-1">
                           {budget.performances.map((perf) => (
-                            <div key={perf.id} className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleEditFinances(perf)}
-                                className="p-1 text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
-                                title="Modifier finances"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
+                            <div key={perf.id} className="flex items-center justify-center">
                               <button
                                 onClick={() => setDeletingPerformance(perf)}
                                 className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"

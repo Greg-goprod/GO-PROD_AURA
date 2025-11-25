@@ -112,8 +112,8 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           >
             <CardHeader className={`cursor-move select-none ${isDragging ? 'opacity-80' : ''}`}>
               <div className="flex items-center gap-2">
-                <Move className="w-4 h-4 text-gray-400" />
-                <div className="font-semibold text-gray-900 dark:text-gray-100 flex-1">
+                <Move className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+                <div className="font-semibold flex-1" style={{ color: 'var(--color-text-primary)' }}>
                   {title}
                 </div>
               </div>

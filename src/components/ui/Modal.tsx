@@ -120,7 +120,12 @@ export default function Modal({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           userSelect: 'none',
-          zIndex: 'var(--z-modal)'
+          zIndex: 'var(--z-modal)',
+          background: 'var(--color-bg-elevated)',
+          border: '1px solid var(--color-border)',
+          boxShadow: 'var(--shadow-xl)',
+          borderRadius: '18px',
+          color: 'var(--color-text-primary)'
         }}
         onMouseDown={handleMouseDown}
       >
@@ -128,15 +133,27 @@ export default function Modal({
         <div 
           className="p-4 border-b modal-header" 
           style={{
-            borderColor: 'var(--border-default)', 
+            borderColor: 'var(--color-border)', 
             cursor: draggable ? 'move' : 'default'
           }}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold font-sans">{title}</h3>
+            <h3 className="text-lg font-bold font-sans" style={{ color: 'var(--color-text-primary)' }}>{title}</h3>
             <button 
               onClick={onClose} 
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-smooth hover:bg-white/5"
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-smooth"
+              style={{
+                color: 'var(--color-text-muted)',
+                background: 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in oklab, var(--color-primary) 15%, transparent)';
+                e.currentTarget.style.color = 'var(--color-text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--color-text-muted)';
+              }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -152,7 +169,7 @@ export default function Modal({
         {footer && (
           <div 
             className="p-4 border-t flex justify-end gap-2" 
-            style={{ borderColor: 'var(--border-default)' }}
+            style={{ borderColor: 'var(--color-border)' }}
           >
             {footer}
           </div>

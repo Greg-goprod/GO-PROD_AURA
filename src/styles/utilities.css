@@ -18,40 +18,140 @@
 .btn-sm{ height:32px; padding:0 0.5rem; font-size:0.875rem }
 
 /* inputs */
-.input{ height:44px; background:var(--color-bg-surface); color:var(--color-text-primary);
-  border:1px solid var(--color-border); border-radius:14px; padding:0 .75rem;
+.input{ 
+  height:44px; 
+  background:var(--color-bg-surface); 
+  color:var(--color-text-primary);
+  border:1px solid var(--color-border); 
+  border-radius:14px; 
+  padding:0 .75rem;
   transition: all 0.2s ease;
 }
-.input:focus{ outline:none; box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent) }
-.input::placeholder { color: var(--color-text-muted); }
+.input:focus{ 
+  outline:none; 
+  box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent);
+  border-color: var(--color-primary);
+}
+.input::placeholder { 
+  color: var(--color-text-muted); 
+  opacity: 0.7;
+}
+
+/* Meilleur contraste input en mode sombre */
+.dark .input {
+  background: color-mix(in oklab, var(--color-bg-primary) 90%, white 8%);
+  border-color: color-mix(in oklab, var(--color-border) 140%, white 10%);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.03);
+}
 
 /* Input compact pour formulaires */
-.input-sm{ height:36px; background:var(--color-bg-surface); color:var(--color-text-primary);
-  border:1px solid var(--color-border); border-radius:10px; padding:0 .65rem;
-  transition: all 0.2s ease; font-size: 0.875rem;
+.input-sm{ 
+  height:36px; 
+  background:var(--color-bg-surface); 
+  color:var(--color-text-primary);
+  border:1px solid var(--color-border); 
+  border-radius:10px; 
+  padding:0 .65rem;
+  transition: all 0.2s ease; 
+  font-size: 0.875rem;
 }
-.input-sm:focus{ outline:none; box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent) }
-.input-sm::placeholder { color: var(--color-text-muted); }
+.input-sm:focus{ 
+  outline:none; 
+  box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent);
+  border-color: var(--color-primary);
+}
+.input-sm::placeholder { 
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* Meilleur contraste input-sm en mode sombre */
+.dark .input-sm {
+  background: color-mix(in oklab, var(--color-bg-primary) 90%, white 8%);
+  border-color: color-mix(in oklab, var(--color-border) 140%, white 10%);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.03);
+}
 
 /* selects */
-.select{ height:44px; background:var(--color-bg-surface); color:var(--color-text-primary);
-  border:1px solid var(--color-border); border-radius:14px; padding:0 .75rem;
-  transition: all 0.2s ease; cursor: pointer;
+.select{ 
+  height:44px; 
+  background:var(--color-bg-surface); 
+  color:var(--color-text-primary);
+  border:1px solid var(--color-border); 
+  border-radius:14px; 
+  padding:0 .75rem;
+  transition: all 0.2s ease; 
+  cursor: pointer;
 }
-.select:focus{ outline:none; box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent) }
+.select:focus{ 
+  outline:none; 
+  box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent);
+  border-color: var(--color-primary);
+}
+
+/* Meilleur contraste select en mode sombre */
+.dark .select {
+  background: color-mix(in oklab, var(--color-bg-primary) 90%, white 8%);
+  border-color: color-mix(in oklab, var(--color-border) 140%, white 10%);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.03);
+}
+
+/* Options du select en mode sombre */
+.dark .select option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
 
 /* Select compact pour formulaires */
-.select-sm{ height:36px; background:var(--color-bg-surface); color:var(--color-text-primary);
-  border:1px solid var(--color-border); border-radius:10px; padding:0 .65rem;
-  transition: all 0.2s ease; font-size: 0.875rem; cursor: pointer;
+.select-sm{ 
+  height:36px; 
+  background:var(--color-bg-surface); 
+  color:var(--color-text-primary);
+  border:1px solid var(--color-border); 
+  border-radius:10px; 
+  padding:0 .65rem;
+  transition: all 0.2s ease; 
+  font-size: 0.875rem; 
+  cursor: pointer;
 }
-.select-sm:focus{ outline:none; box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent) }
+.select-sm:focus{ 
+  outline:none; 
+  box-shadow:0 0 0 2px color-mix(in oklab, var(--color-primary) 55%, transparent);
+  border-color: var(--color-primary);
+}
+
+/* Meilleur contraste select-sm en mode sombre */
+.dark .select-sm {
+  background: color-mix(in oklab, var(--color-bg-primary) 90%, white 8%);
+  border-color: color-mix(in oklab, var(--color-border) 140%, white 10%);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.03);
+}
+
+/* Options du select-sm en mode sombre */
+.dark .select-sm option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
 
 /* cards */
-.card-surface{ background:var(--color-bg-elevated); border:1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
-  border-radius:18px; box-shadow:var(--shadow-md); transition: all 0.2s ease;
+.card-surface{ 
+  background:var(--color-bg-elevated); 
+  border:1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
+  border-radius:18px; 
+  box-shadow:var(--shadow-md); 
+  transition: all 0.2s ease;
 }
-.card-hover:hover{ transform:translateY(-1px); box-shadow:var(--shadow-lg) }
+.card-hover:hover{ 
+  transform:translateY(-1px); 
+  box-shadow:var(--shadow-lg);
+}
+
+/* Meilleur contraste cards en mode sombre */
+.dark .card-surface {
+  background: var(--color-bg-elevated);
+  border: 1px solid color-mix(in oklab, var(--color-border) 110%, white 3%);
+  box-shadow: 0 8px 20px rgba(0,0,0,.55), 0 0 0 1px color-mix(in oklab, var(--color-border) 80%, transparent);
+}
 
 /* table */
 .table{ width:100%; border-collapse:separate; border-spacing:0 }
